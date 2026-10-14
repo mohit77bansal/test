@@ -1,6 +1,6 @@
 """Postgres RLS is the backstop: even raw SQL in a vendor context sees only that vendor's rows."""
 import pytest
-from django.db import connection, transaction
+from django.db import ProgrammingError, connection, transaction
 
 from apps.core.rls import db_context
 
@@ -29,7 +29,7 @@ def test_vendor_context_hides_other_vendors(seed, make_invoice):
 
 def test_vendor_context_cannot_write_other_vendor_rows(seed):
     a, b = seed["vendor_a"], seed["vendor_b"]
-    with pytest.raises(Exception), transaction.atomic(), db_context(internal=False, vendor_id=a.pk):
+    with pytest.raises(ProgrammingError, match="row-level security"), transaction.atomic(), db_context(internal=False, vendor_id=a.pk):
         with connection.cursor() as cur:
             cur.execute(
                 "insert into vendor_gstins (id, created_at, updated_at, vendor_id, gstin, state_code, address, is_primary) "

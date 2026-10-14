@@ -1,7 +1,7 @@
 """Postgres row-level security helpers (see docs/ARCHITECTURE.md §3)."""
 from contextlib import contextmanager
 
-from django.db import connection, migrations
+from django.db import DatabaseError, connection, migrations
 
 POLICY_SQL = """
 ALTER TABLE {table} ENABLE ROW LEVEL SECURITY;
@@ -53,8 +53,14 @@ def db_context(*, internal, vendor_id=None):
     _set("on" if internal else "off", str(vendor_id) if vendor_id else "")
     try:
         yield
-    finally:
-        _set(*previous)
+    except BaseException:
+        # Restore if the transaction is still usable; if it is aborted, the rollback reverts SET LOCAL anyway.
+        try:
+            _set(*previous)
+        except DatabaseError:
+            pass
+        raise
+    _set(*previous)
 
 
 def internal_context():

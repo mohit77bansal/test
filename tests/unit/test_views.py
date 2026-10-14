@@ -152,7 +152,7 @@ def test_admin_toggles_template(as_user, run_on_commit, users):
     vs.block(Vendor.objects.get(vendor_code="V00001"), by=users["vm"], reason="x")
     assert not any("blocked" in m.subject for m in mail.outbox)
     assert Notification.objects.filter(template_code="vendor_blocked", status="SKIPPED").exists()
-    resp = c.post(reverse("console:admin_template_toggle", args=["login_otp"]), follow=True)
+    c.post(reverse("console:admin_template_toggle", args=["login_otp"]), follow=True)
     assert EmailTemplate.objects.get(code="login_otp").enabled
 
 

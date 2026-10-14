@@ -1,7 +1,6 @@
 """Fixed JSON schema per document type (Pydantic-validated) — the parser's output contract."""
 from datetime import date
 from decimal import Decimal
-from typing import Optional
 
 from pydantic import BaseModel, Field
 
@@ -9,23 +8,23 @@ from pydantic import BaseModel, Field
 class LineItem(BaseModel):
     description: str = ""
     hsn_sac: str = ""
-    qty: Optional[Decimal] = None
-    rate: Optional[Decimal] = None
-    amount: Optional[Decimal] = None
-    tax_rate: Optional[Decimal] = None
+    qty: Decimal | None = None
+    rate: Decimal | None = None
+    amount: Decimal | None = None
+    tax_rate: Decimal | None = None
 
 
 class InvoiceExtract(BaseModel):
     supplier_gstin: str = ""
     invoice_no: str = ""
-    invoice_date: Optional[date] = None
+    invoice_date: date | None = None
     po_no: str = ""
     line_items: list[LineItem] = Field(default_factory=list)
-    taxable: Optional[Decimal] = None
-    cgst: Optional[Decimal] = None
-    sgst: Optional[Decimal] = None
-    igst: Optional[Decimal] = None
-    total: Optional[Decimal] = None
+    taxable: Decimal | None = None
+    cgst: Decimal | None = None
+    sgst: Decimal | None = None
+    igst: Decimal | None = None
+    total: Decimal | None = None
     irn: str = ""
 
 

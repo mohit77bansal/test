@@ -1,7 +1,7 @@
 """Per-request context (current user, IP, user agent) used by BaseModel and the audit log."""
 from contextvars import ContextVar
 
-_ctx: ContextVar[dict] = ContextVar("request_ctx", default={})
+_ctx: ContextVar[dict | None] = ContextVar("request_ctx", default=None)
 
 
 def set_context(**values):
@@ -13,7 +13,7 @@ def reset_context(token):
 
 
 def get(key, default=None):
-    return _ctx.get().get(key, default)
+    return (_ctx.get() or {}).get(key, default)
 
 
 def current_user():
@@ -33,7 +33,7 @@ def acting_as(fn):
         by = kwargs.get("by")
         if by is None or current_user() is not None:
             return fn(*args, **kwargs)
-        token = _ctx.set({**_ctx.get(), "user": by})
+        token = _ctx.set({**(_ctx.get() or {}), "user": by})
         try:
             return fn(*args, **kwargs)
         finally:

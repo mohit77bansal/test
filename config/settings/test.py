@@ -11,8 +11,10 @@ VIRUS_SCAN_ENGINE = "none"
 EMAIL_SENDER = "console"
 EMAIL_BACKEND = "django.core.mail.backends.locmem.EmailBackend"
 CELERY_TASK_ALWAYS_EAGER = True
-STORAGE_BACKEND = "local"
-STORAGES["default"] = {"BACKEND": "django.core.files.storage.FileSystemStorage"}  # noqa: F405
+# Local filesystem by default; docker-compose.test.yml sets STORAGE_BACKEND=s3 to run against MinIO.
+STORAGE_BACKEND = env("STORAGE_BACKEND", default="local")  # noqa: F405
+if STORAGE_BACKEND != "s3":
+    STORAGES["default"] = {"BACKEND": "django.core.files.storage.FileSystemStorage"}  # noqa: F405
 PASSWORD_HASHERS = ["django.contrib.auth.hashers.MD5PasswordHasher"]
 FIELD_ENCRYPTION_KEY = "xgimPcMr-DNulTr8SxgUbCxGWZp0pamcJlQ92WX10Vs="
 DATABASES["default"]["CONN_MAX_AGE"] = 0  # noqa: F405
