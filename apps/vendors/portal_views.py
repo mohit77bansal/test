@@ -122,13 +122,6 @@ def upload_document(request, code):
 
 
 @vendor_required
-def documents_status(request):
-    """HTMX: re-render the document table while parse jobs are running."""
-    response = documents(request)
-    return response
-
-
-@vendor_required
 @require_perm("vendor.edit_profile")
 @require_POST
 def submit_registration(request):

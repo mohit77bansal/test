@@ -15,7 +15,10 @@ class InvoiceForm(forms.Form):
     supplier_gstin = forms.CharField(max_length=15, label="Supplier GSTIN")
     invoice_no = forms.CharField(max_length=50, label="Invoice number")
     invoice_date = forms.DateField(widget=forms.DateInput(attrs={"type": "date"}))
-    cost_centre = forms.ModelChoiceField(queryset=CostCentre.objects.filter(is_active=True), required=False)
+    cost_centre = forms.ModelChoiceField(
+        queryset=CostCentre.objects.filter(is_active=True),
+        error_messages={"required": "A cost centre is required (all invoices are non-PO)."},
+    )
     taxable = forms.DecimalField(max_digits=14, decimal_places=2, min_value=Decimal("0"), label="Taxable value")
     cgst = forms.DecimalField(max_digits=14, decimal_places=2, min_value=Decimal("0"), required=False, label="CGST")
     sgst = forms.DecimalField(max_digits=14, decimal_places=2, min_value=Decimal("0"), required=False, label="SGST")

@@ -139,6 +139,9 @@ def submit(inv, *, by, data, line_items=()):
             InvoiceLineItem.objects.create(vendor=inv.vendor, invoice=inv, **{k: li.get(k) for k in ("description", "hsn_sac", "qty", "rate", "amount", "tax_rate")})
     inv.status = S.SUBMITTED
     inv.save()
+    parsed = (inv.parse_job.extracted_json or {}) if inv.parse_job else {}
+    fields = ("invoice_no", "invoice_date", "taxable", "cgst", "sgst", "igst", "total")
+    audit.log("invoice.fields", "invoice", inv.pk, before={f: parsed.get(f) for f in fields}, after=audit.snapshot(inv, fields + ("cost_centre", "gstin", "required_level")))
     _log(inv, S.DRAFT, ApprovalAction.Action.SUBMIT, "VENDOR", by)
     _move_to(inv, Level.FIN_PRE, by=by, action_label="submitted")
     to = [by] + [u for u in vendor_admins(inv.vendor) if u != by]

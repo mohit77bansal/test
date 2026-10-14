@@ -2,6 +2,7 @@
 from pathlib import Path
 
 import environ
+from celery.schedules import crontab
 
 BASE_DIR = Path(__file__).resolve().parents[2]
 env = environ.Env()
@@ -161,7 +162,7 @@ CELERY_TIMEZONE = TIME_ZONE
 CELERY_BEAT_SCHEDULE = {
     "daily-digest": {
         "task": "apps.notify.tasks.daily_digest",
-        "schedule": 60 * 60 * 24,
+        "schedule": crontab(hour=env.int("DIGEST_HOUR", default=8), minute=env.int("DIGEST_MINUTE", default=30)),
     },
 }
 
