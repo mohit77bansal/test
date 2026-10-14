@@ -4,9 +4,7 @@ Source of truth: `docs/vendor-portal-spec.pdf` (v1.0, Oct 14 2026). This documen
 Stage 1 deliverable. Where it resolves a gap in the spec, the resolution is marked
 **[Resolution]** and should be written back into the spec when approved.
 
-> Status: **awaiting approval** by Mohit / lead engineer. Build work on this branch was
-> started in parallel at the owner's request while they were away; anything here that
-> changes on review will be changed in the code too.
+> Status: **approved** by Mohit Bansal (Oct 14, 2026). The resolutions in section 1 are part of the spec.
 
 ---
 
@@ -265,6 +263,15 @@ All MVP feature rows (#1–6, 10, 11, 13, 14, 16, 18–20, 22, 23, 26, 27, 29–
 Phase 2/3 rows are not built (schema room only: `purchase_orders`, `has_expiry`/`valid_to`, `irn` in the parse schema).
 
 Test run: `pytest tests/unit tests/e2e -n 4` → **124 passed** (55 unit, 69 Playwright across all 13 suites).
+
+Deployment verified: the production image (`docker/Dockerfile`) was built and `docker/docker-compose.yml`
+(nginx + TLS, app, worker, beat, postgres, redis) brought up; `/healthz` ok, app connects as non-superuser
+`vp_app` with RLS forced on 13 tables, parsing and emails run asynchronously on the Celery worker, and the
+remote smoke suite (`tests/smoke`) passed end to end through nginx. Fixes from that run: compose env-file
+path, shared media volume for local storage, nginx re-resolving the app container after redeploys, login
+rate limit counting only POSTs, worker/beat healthchecks. Not exercised here: `clamav` and `backup`
+services (need ClamAV signature downloads and AWS) and `docker-compose.test.yml` (its Playwright image
+needs Debian mirrors, blocked in the build sandbox).
 
 | MVP acceptance criterion | Status |
 |---|---|

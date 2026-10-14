@@ -7,8 +7,10 @@ from django.core.files.uploadedfile import SimpleUploadedFile
 
 
 @pytest.fixture(autouse=True)
-def _media(settings, tmp_path):
-    settings.MEDIA_ROOT = tmp_path / "media"
+def _media(request, tmp_path):
+    if "settings" not in request.fixturenames and not request.config.pluginmanager.hasplugin("django"):
+        return  # remote smoke runs with -p no:django
+    request.getfixturevalue("settings").MEDIA_ROOT = tmp_path / "media"
 
 
 @pytest.fixture

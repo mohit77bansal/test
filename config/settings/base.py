@@ -1,4 +1,5 @@
 """Base settings shared by every environment. All secrets come from the environment / .env."""
+import os
 from pathlib import Path
 
 import environ
@@ -6,7 +7,8 @@ from celery.schedules import crontab
 
 BASE_DIR = Path(__file__).resolve().parents[2]
 env = environ.Env()
-environ.Env.read_env(BASE_DIR / ".env", overwrite=False)
+if not os.environ.get("DJANGO_SETTINGS_MODULE", "").endswith(".test"):  # tests are hermetic
+    environ.Env.read_env(BASE_DIR / ".env", overwrite=False)
 
 SECRET_KEY = env("DJANGO_SECRET_KEY", default="dev-insecure-key-change-me")
 DEBUG = env.bool("DJANGO_DEBUG", default=False)

@@ -1,0 +1,7 @@
+.venv
+.git
+media
+staticfiles
+test-results
+**/__pycache__
+.env

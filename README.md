@@ -72,9 +72,28 @@ email API or real AWS. If Playwright's bundled browser is missing, set `PLAYWRIG
 See [`docs/RUNBOOK.md`](docs/RUNBOOK.md). In short: copy `.env.example` to `.env`, then
 
 ```bash
-docker compose -f docker/docker-compose.yml pull
-docker compose -f docker/docker-compose.yml run --rm app python manage.py migrate
-docker compose -f docker/docker-compose.yml run --rm app python manage.py collectstatic --noinput
-docker compose -f docker/docker-compose.yml up -d
-BASE_URL=https://vendor-uat.solfin.co.in pytest tests/e2e -m smoke   # see runbook for remote smoke
+docker compose --env-file .env -f docker/docker-compose.yml pull
+docker compose --env-file .env -f docker/docker-compose.yml run --rm app python manage.py migrate
+docker compose --env-file .env -f docker/docker-compose.yml run --rm app python manage.py collectstatic --noinput
+docker compose --env-file .env -f docker/docker-compose.yml up -d
+```
+
+Post-deploy smoke against the live URL (dedicated smoke accounts with `mfa_enabled` off):
+
+```bash
+SMOKE_BASE_URL=https://vendor-uat.solfin.co.in SMOKE_VENDOR_EMAIL=... SMOKE_FINANCE_EMAIL=... \
+SMOKE_L1_EMAIL=... SMOKE_PASSWORD=... pytest tests/smoke -p no:django
+```
+
+Try the whole stack locally (self-signed TLS on https://localhost:8443, fake parser, console email):
+
+```bash
+cp .env.example .env    # set STORAGE_BACKEND=local, PARSER_ENGINE=fake, VIRUS_SCAN_ENGINE=none, EMAIL_SENDER=console, a FIELD_ENCRYPTION_KEY
+mkdir -p docker/nginx/certs && openssl req -x509 -nodes -newkey rsa:2048 -days 30 -subj /CN=localhost \
+  -keyout docker/nginx/certs/privkey.pem -out docker/nginx/certs/fullchain.pem
+export HTTP_PORT=8080 HTTPS_PORT=8443
+docker compose --env-file .env -f docker/docker-compose.yml up -d postgres redis
+docker compose --env-file .env -f docker/docker-compose.yml run --rm app python manage.py migrate
+docker compose --env-file .env -f docker/docker-compose.yml run --rm app python manage.py seed --demo
+docker compose --env-file .env -f docker/docker-compose.yml up -d app worker beat nginx
 ```
