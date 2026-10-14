@@ -255,3 +255,35 @@ permissions, RLS (raw SQL as vendor A sees no vendor B rows), crypto, parser rul
 
 Each module: builder writes models/services/views/templates + unit tests; tester writes
 the Playwright suite from sections 4–5 in parallel.
+
+---
+
+## 10. Build status (Stage 2) and release-gate checklist (Stage 3)
+
+Built on branch `claude/cloud-system-migration-hjp46k` ahead of formal Stage 1 sign-off, at the owner's request.
+All MVP feature rows (#1–6, 10, 11, 13, 14, 16, 18–20, 22, 23, 26, 27, 29–31, 33, 34) are implemented;
+Phase 2/3 rows are not built (schema room only: `purchase_orders`, `has_expiry`/`valid_to`, `irn` in the parse schema).
+
+Test run: `pytest tests/unit tests/e2e -n 4` → **124 passed** (55 unit, 69 Playwright across all 13 suites).
+
+| MVP acceptance criterion | Status |
+|---|---|
+| A vendor can go from invite to Active without emailing anyone | ✅ `test_vendor_onboarding.py` |
+| Parsing pre-fills ≥ 90% of header fields on a 50-invoice real test set | ⏳ needs Textract credentials + the real invoice set (fake engine only so far) |
+| ₹15 lakh routes Finance → L1 → L2 → L3; ₹50,000 stops at L1 | ✅ `test_approval_routing.py` |
+| No user can approve an invoice they uploaded or approved at an earlier level | ✅ `test_maker_checker.py`, unit tests |
+| Vendor A → vendor B isolation passes on every endpoint and file URL | ✅ `test_vendor_isolation.py` + RLS unit tests |
+| Every state change sends its email within 2 minutes and is audited | ✅ functionally (`test_audit.py`, email asserts); timing to verify in UAT with the Solfin email API |
+| VAPT has no open high/critical findings | ⏳ UAT |
+| Restore from backup tested in UAT and documented | ⏳ UAT (procedure in `docs/RUNBOOK.md`) |
+
+Bugs found by the tester agents and fixed: approver queue lost an invoice after the approver raised a
+query (multi-valued `exclude`); "Record payment" link shown on PAID invoices; files never parsed
+(agreements, reply attachments) were never virus-scanned and so never viewable — every upload is now
+scanned synchronously in `store_upload`.
+
+Open items for the owner:
+1. Solfin email API spec (endpoint, auth, payload) — `SolfinApiSender` has a placeholder payload.
+2. AWS: S3 bucket + KMS key in ap-south-1, Textract access, optional Bedrock model id for `LLM_ENGINE=bedrock`.
+3. Textract adapter is unverified against real responses — run it on the 50-invoice set and tune `EXPENSE_MAP`.
+4. Stage 3 items above (UAT deploy, VAPT, restore drill), pilot vendors, real cost centres and owners.
