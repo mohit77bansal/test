@@ -193,3 +193,6 @@ LOGGING = {
     "handlers": {"console": {"class": "logging.StreamHandler", "formatter": "json"}},
     "root": {"handlers": ["console"], "level": env("LOG_LEVEL", default="INFO")},
 }
+
+# Lockout is per account (spec); per-IP rate limiting is done by nginx (limit_req on /login/).
+SILENCED_SYSTEM_CHECKS = ["axes.W006"]
