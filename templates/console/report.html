@@ -1,0 +1,21 @@
+{% extends "base.html" %}{% block title %}{{ title }}{% endblock %}
+{% block content %}
+<div class="mb-4 flex flex-wrap gap-2">{% for key, label in reports.items %}<a href="{% url 'console:report' key %}" class="rounded-md px-3 py-1 text-sm {% if key == name %}bg-indigo-600 text-white{% else %}bg-white text-slate-700{% endif %}" data-testid="report-tab-{{ key }}">{{ label }}</a>{% endfor %}</div>
+<div class="mb-4 flex items-center justify-between"><h1 class="h1">{{ title }}</h1>{% if user|can:"report.export" %}{% include "partials/export_buttons.html" %}{% endif %}</div>
+<div class="card overflow-x-auto p-0">
+{% if name == "vendor-master" %}
+  <table class="table" data-testid="report-table"><thead><tr><th>Code</th><th>Name</th><th>Category</th><th>GSTIN</th><th>MSME</th><th>Status</th></tr></thead>
+  <tbody>{% for v in vendors %}<tr data-testid="report-row"><td>{{ v.vendor_code }}</td><td>{{ v.legal_name }}</td><td>{{ v.category }}</td><td>{{ v.primary_gstin.gstin }}</td><td>{{ v.msme_status }}</td><td>{% status_badge v.status %}</td></tr>{% endfor %}</tbody></table>
+{% elif name == "ageing" %}
+  <div class="grid grid-cols-2 gap-4 p-4 md:grid-cols-4">{% for b, s in summary.items %}<div class="rounded-md bg-slate-50 p-3" data-testid="ageing-bucket-{{ b }}"><div class="muted">{{ b }} days</div><div class="text-lg font-semibold"><span data-testid="ageing-count-{{ b }}">{{ s.count }}</span> · {{ s.amount|inr }}</div></div>{% endfor %}</div>
+  <table class="table" data-testid="report-table"><thead><tr><th>Bucket</th><th>Portal ref</th><th>Vendor</th><th>Status</th><th class="text-right">Days</th><th class="text-right">Outstanding</th></tr></thead>
+  <tbody>{% for r in rows %}<tr data-testid="report-row"><td>{{ r.bucket }}</td><td>{{ r.invoice.portal_ref }}</td><td>{{ r.invoice.vendor.legal_name }}</td><td>{{ r.invoice.get_status_display }}</td><td class="text-right">{{ r.days }}</td><td class="text-right">{{ r.outstanding|inr }}</td></tr>{% endfor %}</tbody></table>
+{% elif name == "pending-by-approver" %}
+  <table class="table" data-testid="report-table"><thead><tr><th>Approver</th><th>Level</th><th class="text-right">Pending</th><th class="text-right">Amount</th><th>Oldest since</th></tr></thead>
+  <tbody>{% for r in rows %}<tr data-testid="report-row" data-approver="{{ r.email }}"><td>{{ r.approver }}</td><td>{{ r.level }}</td><td class="text-right" data-testid="pending-count-{{ r.email }}">{{ r.count }}</td><td class="text-right">{{ r.amount|inr }}</td><td>{{ r.oldest|date:"d M Y" }}</td></tr>{% empty %}<tr><td colspan="5" class="muted">Nothing pending.</td></tr>{% endfor %}</tbody></table>
+{% else %}
+  <table class="table" data-testid="report-table"><thead><tr><th>Paid on</th><th>Portal ref</th><th>Vendor</th><th class="text-right">Amount</th><th class="text-right">TDS</th><th>UTR</th></tr></thead>
+  <tbody>{% for p in payments %}<tr data-testid="report-row"><td>{{ p.paid_on|date:"d M Y" }}</td><td>{{ p.invoice.portal_ref }}</td><td>{{ p.vendor.legal_name }}</td><td class="text-right">{{ p.amount|inr }}</td><td class="text-right">{{ p.tds_deducted|inr }}</td><td>{{ p.utr }}</td></tr>{% endfor %}</tbody></table>
+{% endif %}
+</div>
+{% endblock %}

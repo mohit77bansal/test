@@ -1,0 +1,12 @@
+{% extends "accounts/_auth_base.html" %}{% block title %}Set your password{% endblock %}
+{% block card %}
+<h1 class="h1 mb-1">Welcome to the Solfin Vendor Portal</h1>
+<p class="muted mb-4">{{ invite.vendor.legal_name }} · {{ invite.email }}. Choose a password to {% if invite.user %}sign in{% else %}start your registration{% endif %}.</p>
+{% include "partials/form_errors.html" %}
+<form method="post" class="space-y-4">{% csrf_token %}
+  <div><label class="label" for="id_password1">Password</label><input class="input" type="password" name="password1" id="id_password1" required data-testid="invite-password1">{% for e in form.password1.errors %}<p class="errorlist">{{ e }}</p>{% endfor %}</div>
+  <div><label class="label" for="id_password2">Confirm password</label><input class="input" type="password" name="password2" id="id_password2" required data-testid="invite-password2"></div>
+  <p class="text-xs text-slate-500">At least 10 characters; not entirely numeric or a common password.</p>
+  <button class="btn btn-primary w-full justify-center" data-testid="invite-accept-btn">Set password and continue</button>
+</form>
+{% endblock %}

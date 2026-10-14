@@ -1,0 +1,11 @@
+{% extends "accounts/_auth_base.html" %}{% block title %}Verification code{% endblock %}
+{% block card %}
+<h1 class="h1 mb-2">Check your email</h1>
+<p class="muted mb-4">We sent a 6-digit code to <strong>{{ email }}</strong>. It is valid for 10 minutes.</p>
+{% if error %}<div class="mb-4 rounded-md bg-red-50 px-3 py-2 text-sm text-red-800" data-testid="otp-error">{{ error }}</div>{% endif %}
+<form method="post" class="space-y-4">{% csrf_token %}
+  <div><label class="label" for="id_code">Code</label><input class="input tracking-widest" name="code" id="id_code" inputmode="numeric" autocomplete="one-time-code" maxlength="6" required autofocus data-testid="otp-code"></div>
+  <button class="btn btn-primary w-full justify-center" data-testid="otp-submit-btn">Verify and sign in</button>
+</form>
+<p class="mt-4 text-center text-sm"><a class="text-indigo-700 hover:underline" href="{% url 'accounts:login' %}">Back to sign in</a></p>
+{% endblock %}

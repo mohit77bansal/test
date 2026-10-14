@@ -1,0 +1,15 @@
+{% extends "base.html" %}{% block title %}User{% endblock %}
+{% block content %}
+{% include "console/_admin_tabs.html" with tab="users" %}
+<form method="post" class="card max-w-2xl space-y-4" novalidate>{% csrf_token %}
+  <h1 class="h1">{% if obj %}Edit {{ obj.email }}{% else %}Add internal user{% endif %}</h1>
+  {% include "partials/form_errors.html" %}
+  <div class="grid gap-4 md:grid-cols-2">
+    {% include "partials/field.html" with field=form.name %}{% include "partials/field.html" with field=form.email %}
+    {% include "partials/field.html" with field=form.phone %}{% include "partials/field.html" with field=form.status %}
+  </div>
+  <div><span class="label">Roles</span><div class="grid grid-cols-2 gap-2 text-sm" data-testid="role-checkboxes">{% for cb in form.roles %}<label class="flex items-center gap-2">{{ cb.tag }} {{ cb.choice_label }}</label>{% endfor %}</div></div>
+  {% include "partials/field.html" with field=form.l1_cost_centre %}
+  <button class="btn btn-primary" data-testid="role-assign-btn">Save</button>
+</form>
+{% endblock %}

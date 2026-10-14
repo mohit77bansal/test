@@ -1,0 +1,6 @@
+<div class="mb-4 flex flex-wrap gap-2 text-sm">
+  <a href="{% url 'console:admin_users' %}" class="rounded-md px-3 py-1 {% if tab == 'users' %}bg-indigo-600 text-white{% else %}bg-white{% endif %}" data-testid="admin-tab-users">Users & roles</a>
+  <a href="{% url 'console:admin_matrix' %}" class="rounded-md px-3 py-1 {% if tab == 'matrix' %}bg-indigo-600 text-white{% else %}bg-white{% endif %}" data-testid="admin-tab-matrix">Approval matrix</a>
+  <a href="{% url 'console:admin_documents' %}" class="rounded-md px-3 py-1 {% if tab == 'documents' %}bg-indigo-600 text-white{% else %}bg-white{% endif %}" data-testid="admin-tab-documents">Document checklist</a>
+  <a href="{% url 'console:admin_templates' %}" class="rounded-md px-3 py-1 {% if tab == 'templates' %}bg-indigo-600 text-white{% else %}bg-white{% endif %}" data-testid="admin-tab-templates">Email templates</a>
+</div>

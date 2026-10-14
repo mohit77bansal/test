@@ -1,0 +1,13 @@
+{% extends "base.html" %}{% block title %}Upload invoice{% endblock %}
+{% block content %}
+<div class="mx-auto max-w-xl card">
+  <h1 class="h1 mb-1">Upload an invoice</h1>
+  <p class="muted mb-4">We read the invoice and fill in the details for you to check. All invoices are non-PO and need a cost centre.</p>
+  {% include "partials/form_errors.html" %}
+  <form method="post" enctype="multipart/form-data" class="space-y-4">{% csrf_token %}
+    <input type="file" name="file" accept=".pdf,.jpg,.jpeg,.png" required data-max-bytes="10485760" class="input" data-testid="invoice-file">
+    {% for e in form.file.errors %}<p class="errorlist" data-testid="error-file">{{ e }}</p>{% endfor %}
+    <button class="btn btn-primary" data-testid="invoice-upload-btn">Upload and read</button>
+  </form>
+</div>
+{% endblock %}

@@ -1,0 +1,26 @@
+<div class="mb-6 flex flex-wrap items-center justify-between gap-3">
+  <div>
+    <h1 class="h1">Vendor registration — {{ vendor.legal_name }}</h1>
+    <p class="muted">Vendor code {{ vendor.vendor_code }} · {% status_badge vendor.status %}</p>
+  </div>
+  <div class="flex gap-2 text-sm">
+    <a href="{% url 'vendor:onboarding' %}" class="rounded-md px-3 py-1 {% if step == 'profile' %}bg-indigo-600 text-white{% else %}bg-white text-slate-700{% endif %}" data-testid="step-profile">1. Company & bank</a>
+    <a href="{% url 'vendor:documents' %}" class="rounded-md px-3 py-1 {% if step == 'documents' %}bg-indigo-600 text-white{% else %}bg-white text-slate-700{% endif %}" data-testid="step-documents">2. KYC documents & submit</a>
+  </div>
+</div>
+{% if vendor.status == "DRAFT" and vendor.review_remarks %}
+<div class="mb-4 rounded-md border border-amber-300 bg-amber-50 p-3 text-sm text-amber-900" data-testid="review-remarks"><strong>Sent back by the Vendor Manager:</strong> {{ vendor.review_remarks }}</div>
+{% endif %}
+{% if vendor.status == "SUBMITTED" or vendor.status == "UNDER_REVIEW" %}
+<div class="mb-4 rounded-md bg-blue-50 p-3 text-sm text-blue-900" data-testid="awaiting-review">Your registration is with the Vendor Manager for review. We will email you when it is done.</div>
+{% elif vendor.status == "REJECTED" %}
+<div class="mb-4 rounded-md bg-red-50 p-3 text-sm text-red-900">Your registration was not approved. {{ vendor.review_remarks }}</div>
+{% elif vendor.status == "BLOCKED" %}
+<div class="mb-4 rounded-md bg-red-50 p-3 text-sm text-red-900" data-testid="vendor-blocked">Your vendor account is blocked: {{ vendor.block_reason }}</div>
+{% endif %}
+{% if mismatches %}
+<div class="mb-4 rounded-md border border-amber-300 bg-amber-50 p-3 text-sm text-amber-900" data-testid="parse-mismatch">
+  <strong>Your documents don't match what you typed:</strong>
+  <ul class="ml-5 list-disc">{% for m in mismatches %}<li data-testid="mismatch-{{ m.field }}">{{ m.field|title }}: you entered <code>{{ m.typed }}</code>, the document shows <code>{{ m.parsed }}</code></li>{% endfor %}</ul>
+</div>
+{% endif %}

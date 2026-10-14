@@ -1,0 +1,15 @@
+{% extends "base.html" %}{% block title %}Notifications{% endblock %}
+{% block content %}
+<div class="mb-4 flex items-center justify-between">
+  <h1 class="h1">Notifications</h1>
+  <form method="post" action="{% url 'notify:read_all' %}">{% csrf_token %}<button class="btn btn-sm" data-testid="bell-read-all-btn">Mark all read</button></form>
+</div>
+<div class="card divide-y divide-slate-100 p-0" data-testid="notification-list">
+  {% for n in items %}
+    <form method="post" action="{% url 'notify:read' n.pk %}" class="flex items-center justify-between px-4 py-3 {% if not n.read_at %}bg-indigo-50{% endif %}">{% csrf_token %}
+      <div><div class="text-sm font-medium" data-testid="notification-subject">{{ n.subject }}</div><div class="text-xs text-slate-500">{{ n.created_at|date:"d M Y H:i" }}</div></div>
+      <button class="btn btn-sm" data-testid="notification-open-btn">Open</button>
+    </form>
+  {% empty %}<p class="muted p-4">No notifications yet.</p>{% endfor %}
+</div>
+{% endblock %}

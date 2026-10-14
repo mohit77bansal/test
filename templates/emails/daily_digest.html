@@ -1,0 +1,2 @@
+{% extends "emails/_base.html" %}
+{% block body %}<p>Hello {{ name }}, you have <strong>{{ count }}</strong> item(s) waiting.</p><ul>{% for i in items %}<li>{{ i.portal_ref }} · {{ i.vendor }} · {{ i.total }} · since {{ i.since }}</li>{% endfor %}</ul>{% endblock %}

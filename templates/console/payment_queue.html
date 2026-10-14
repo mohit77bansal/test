@@ -1,0 +1,8 @@
+{% extends "base.html" %}{% block title %}Payment queue{% endblock %}
+{% block content %}
+<div class="mb-4 flex items-center justify-between"><h1 class="h1">Approved invoices awaiting payment</h1>{% include "partials/export_buttons.html" %}</div>
+<div class="card overflow-x-auto p-0">
+  <table class="table" data-testid="payment-queue"><thead><tr><th>Portal ref</th><th>Vendor</th><th>Due</th><th class="text-right">Total</th><th class="text-right">Outstanding</th><th>Status</th><th></th></tr></thead>
+  <tbody>{% for i in invoices %}<tr data-testid="payment-queue-row-{{ i.portal_ref }}"><td><a class="text-indigo-700 underline" href="{% url 'console:invoice_detail' i.pk %}">{{ i.portal_ref }}</a></td><td>{{ i.vendor.legal_name }}{% if i.vendor.has_pending_bank_change %} <span class="badge badge-amber">Bank change pending</span>{% endif %}</td><td>{{ i.due_date|date:"d M Y" }}</td><td class="text-right">{{ i.total|inr }}</td><td class="text-right">{{ i.outstanding|inr }}</td><td>{% status_badge i.status i.get_status_display %}</td><td><a class="btn btn-sm" href="{% url 'console:record_payment' i.pk %}" data-testid="payment-record-link">Record payment</a></td></tr>{% empty %}<tr><td colspan="7" class="muted">Nothing awaiting payment.</td></tr>{% endfor %}</tbody></table>
+</div>
+{% endblock %}

@@ -1,0 +1,2 @@
+{% extends "emails/_base.html" %}
+{% block body %}<p><strong>{{ vendor_name }}</strong> ({{ vendor_code }}) has requested a change of bank account (new account ending {{ last4 }}).</p><p>Payments to this vendor are on hold until Finance verifies the change.</p>{% endblock %}

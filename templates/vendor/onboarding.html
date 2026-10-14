@@ -1,0 +1,45 @@
+{% extends "base.html" %}{% block title %}Registration{% endblock %}
+{% block content %}
+{% include "vendor/_steps.html" %}
+{% if prefilled %}<div class="mb-4 rounded-md bg-blue-50 p-3 text-sm text-blue-900" data-testid="prefill-notice">Some fields were filled in from your uploaded documents. Please check them before saving.</div>{% endif %}
+<form method="post" class="space-y-6" novalidate>{% csrf_token %}
+  {% include "partials/form_errors.html" %}
+  <fieldset class="card" {% if not can_edit %}disabled{% endif %}>
+    <legend class="h2 mb-3">Company</legend>
+    <div class="grid gap-4 md:grid-cols-2">
+      {% include "partials/field.html" with field=form.legal_name %}
+      {% include "partials/field.html" with field=form.trade_name %}
+      {% include "partials/field.html" with field=form.constitution %}
+      {% include "partials/field.html" with field=form.pan %}
+      {% include "partials/field.html" with field=form.gstin %}
+      {% include "partials/field.html" with field=form.contact_name %}
+      {% include "partials/field.html" with field=form.contact_phone %}
+      {% include "partials/field.html" with field=form.address wrapper_class="md:col-span-2" %}
+    </div>
+  </fieldset>
+  <fieldset class="card" {% if not can_edit %}disabled{% endif %}>
+    <legend class="h2 mb-3">MSME</legend>
+    <div class="grid gap-4 md:grid-cols-3">
+      {% include "partials/field.html" with field=form.msme_status %}
+      {% include "partials/field.html" with field=form.udyam_no %}
+      {% include "partials/field.html" with field=form.msme_type %}
+    </div>
+  </fieldset>
+  <fieldset class="card" {% if not can_edit %}disabled{% endif %}>
+    <legend class="h2 mb-3">Bank account</legend>
+    {% if account %}<p class="muted mb-3" data-testid="bank-on-file">On file: {{ account.bank_name }} {{ account.masked }} ({{ account.ifsc }}). Leave the account number blank to keep it.</p>{% endif %}
+    <div class="grid gap-4 md:grid-cols-2">
+      {% include "partials/field.html" with field=form.holder_name %}
+      {% include "partials/field.html" with field=form.account_no %}
+      {% include "partials/field.html" with field=form.ifsc %}
+      {% include "partials/field.html" with field=form.bank_name %}
+    </div>
+  </fieldset>
+  <fieldset class="card" {% if not can_edit %}disabled{% endif %}>
+    <legend class="h2 mb-3">Consent</legend>
+    <p class="mb-3 text-sm text-slate-600">Solfin collects your company, KYC and bank details to onboard you as a vendor and to pay your invoices. Data is stored in India (AWS ap-south-1) and kept for as long as the law requires; you can ask us to correct it at any time.</p>
+    {% include "partials/field.html" with field=form.consent %}
+  </fieldset>
+  {% if can_edit %}<div class="flex justify-end"><button class="btn btn-primary" data-testid="registration-save-btn">Save and continue</button></div>{% endif %}
+</form>
+{% endblock %}

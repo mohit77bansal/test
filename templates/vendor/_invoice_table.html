@@ -1,0 +1,12 @@
+<table class="table" data-testid="invoice-table">
+  <thead><tr><th>Portal ref</th><th>Invoice no</th><th>Date</th><th class="text-right">Total</th><th>Status</th><th>Expected payment</th></tr></thead>
+  <tbody>
+  {% for i in invoices %}
+    <tr data-testid="invoice-row-{{ i.portal_ref }}">
+      <td><a class="text-indigo-700 underline" href="{% url 'vendor:invoice_detail' i.pk %}">{{ i.portal_ref }}</a></td>
+      <td>{{ i.invoice_no }}</td><td>{{ i.invoice_date|date:"d M Y" }}</td><td class="text-right">{{ i.total|inr }}</td>
+      <td>{% status_badge i.status i.get_status_display %}</td><td>{{ i.due_date|date:"d M Y"|default:"—" }}</td>
+    </tr>
+  {% empty %}<tr><td colspan="6" class="muted">No invoices yet.</td></tr>{% endfor %}
+  </tbody>
+</table>

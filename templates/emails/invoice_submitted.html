@@ -1,0 +1,2 @@
+{% extends "emails/_base.html" %}
+{% block body %}<p>We have received invoice <strong>{{ invoice_no }}</strong> for {{ total }} from {{ vendor_name }}.</p><p>Portal reference: <strong>{{ portal_ref }}</strong>. You can follow its status in the portal.</p>{% endblock %}

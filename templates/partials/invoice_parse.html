@@ -1,0 +1,37 @@
+<div id="parse-panel" {% if reading %}hx-get="{% url 'vendor:invoice_parse_status' invoice.pk %}" hx-trigger="every 2s" hx-swap="outerHTML"{% endif %}>
+{% if reading %}
+  <div class="card flex items-center gap-3" data-testid="parse-reading">
+    <svg class="h-5 w-5 animate-spin text-indigo-600" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" class="opacity-25"/><path fill="currentColor" class="opacity-75" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"/></svg>
+    <div><div class="font-medium">Reading your invoice…</div><div class="muted">This usually takes about 10 seconds.</div></div>
+  </div>
+{% else %}
+  {% if job.status == "FAILED" %}<div class="mb-4 rounded-md bg-amber-50 p-3 text-sm text-amber-900" data-testid="parse-failed">We could not read this file automatically. Please fill in the details.</div>
+  {% elif low %}<div class="mb-4 rounded-md bg-amber-50 p-3 text-sm text-amber-900" data-testid="low-confidence-notice">Fields highlighted in amber were hard to read. Please check them.</div>{% endif %}
+  {% if checks %}<div class="mb-4 rounded-md bg-amber-50 p-3 text-sm text-amber-900" data-testid="parse-checks"><ul class="ml-5 list-disc">{% for c in checks %}<li>{{ c.message }}: check {{ c.field }}</li>{% endfor %}</ul></div>{% endif %}
+  <form method="post" action="{% url 'vendor:invoice_edit' invoice.pk %}" class="card space-y-4" novalidate data-testid="invoice-form">{% csrf_token %}
+    {% include "partials/form_errors.html" %}
+    <div class="grid gap-4 md:grid-cols-3">
+      {% include "partials/field.html" with field=form.supplier_gstin %}
+      {% include "partials/field.html" with field=form.invoice_no %}
+      {% include "partials/field.html" with field=form.invoice_date %}
+      {% include "partials/field.html" with field=form.cost_centre %}
+    </div>
+    <div class="grid gap-4 md:grid-cols-5">
+      {% include "partials/field.html" with field=form.taxable %}
+      {% include "partials/field.html" with field=form.cgst %}
+      {% include "partials/field.html" with field=form.sgst %}
+      {% include "partials/field.html" with field=form.igst %}
+      {% include "partials/field.html" with field=form.total %}
+    </div>
+    {% if line_items %}
+    <div><h3 class="h2 mb-2">Line items read from the invoice</h3>
+      <table class="table" data-testid="line-items"><thead><tr><th>Description</th><th>HSN/SAC</th><th class="text-right">Qty</th><th class="text-right">Rate</th><th class="text-right">Amount</th><th class="text-right">Tax %</th></tr></thead>
+      <tbody>{% for li in line_items %}<tr><td>{{ li.description }}</td><td>{{ li.hsn_sac }}</td><td class="text-right">{{ li.qty|default:"" }}</td><td class="text-right">{{ li.rate|default:"" }}</td><td class="text-right">{{ li.amount|default:"" }}</td><td class="text-right">{{ li.tax_rate|default:"" }}</td></tr>{% endfor %}</tbody></table>
+    </div>
+    {% endif %}
+    <div class="flex items-center justify-end gap-2">
+      <button class="btn btn-primary" data-testid="invoice-submit-btn">Confirm and submit</button>
+    </div>
+  </form>
+{% endif %}
+</div>

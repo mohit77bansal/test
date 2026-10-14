@@ -1,0 +1,2 @@
+{% extends "accounts/_auth_base.html" %}{% block title %}Invitation expired{% endblock %}
+{% block card %}<h1 class="h1 mb-2" data-testid="invite-invalid">This invitation link is not valid</h1><p class="muted">It may have expired (links are valid for 7 days) or already been used. Ask your Solfin contact to send a new invitation, or <a class="text-indigo-700 underline" href="{% url 'accounts:login' %}">sign in</a>.</p>{% endblock %}

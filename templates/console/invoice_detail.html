@@ -1,0 +1,57 @@
+{% extends "base.html" %}{% block title %}{{ invoice.portal_ref }}{% endblock %}
+{% block content %}
+<div class="mb-4 flex flex-wrap items-center justify-between gap-2">
+  <div><h1 class="h1" data-testid="invoice-ref">{{ invoice.portal_ref }}</h1><p class="muted"><a class="underline" href="{% url 'console:vendor_detail' invoice.vendor.pk %}">{{ invoice.vendor.vendor_code }} · {{ invoice.vendor.legal_name }}</a> · invoice {{ invoice.invoice_no }} · {{ invoice.invoice_date|date:"d M Y" }}</p></div>
+  <div class="flex items-center gap-2"><span class="muted text-xs">Needs up to {{ invoice.required_level }}</span>{% status_badge invoice.status invoice.get_status_display %}</div>
+</div>
+{% if invoice.vendor.has_pending_bank_change %}<div class="mb-4 rounded-md bg-amber-50 p-3 text-sm text-amber-900" data-testid="payment-hold">Payments to this vendor are on hold: a bank-detail change awaits Finance approval.</div>{% endif %}
+<div class="grid gap-6 lg:grid-cols-3">
+  <div class="space-y-6 lg:col-span-2">
+    <div class="card">
+      <dl class="grid grid-cols-2 gap-3 text-sm md:grid-cols-4">
+        <div><dt class="muted">Supplier GSTIN</dt><dd>{{ invoice.gstin.gstin }}</dd></div>
+        <div><dt class="muted">Cost centre</dt><dd data-testid="invoice-cost-centre">{{ invoice.cost_centre.code }}</dd></div>
+        <div><dt class="muted">Taxable</dt><dd>{{ invoice.taxable|inr }}</dd></div>
+        <div><dt class="muted">CGST / SGST / IGST</dt><dd>{{ invoice.cgst|inr }} / {{ invoice.sgst|inr }} / {{ invoice.igst|inr }}</dd></div>
+        <div><dt class="muted">Total</dt><dd class="font-semibold" data-testid="invoice-total">{{ invoice.total|inr }}</dd></div>
+        <div><dt class="muted">TDS</dt><dd>{{ invoice.tds_section|default:"—" }} {{ invoice.tds_amount|inr }}</dd></div>
+        <div><dt class="muted">Due</dt><dd>{{ invoice.due_date|date:"d M Y"|default:"—" }}</dd></div>
+        <div><dt class="muted">Outstanding</dt><dd>{{ invoice.outstanding|inr }}</dd></div>
+      </dl>
+      {% if low %}<p class="mt-3 text-xs text-amber-700">Parser had low confidence on: {{ low|join:", " }} (vendor confirmed the values).</p>{% endif %}
+      <p class="mt-3 text-sm"><a class="text-indigo-700 underline" href="{% url 'console:file' invoice.file.pk %}" target="_blank" data-testid="invoice-file-link">Open invoice file</a></p>
+      {% if invoice.line_items.exists %}
+      <table class="table mt-4"><thead><tr><th>Description</th><th>HSN/SAC</th><th class="text-right">Qty</th><th class="text-right">Amount</th></tr></thead><tbody>{% for li in invoice.line_items.all %}<tr><td>{{ li.description }}</td><td>{{ li.hsn_sac }}</td><td class="text-right">{{ li.qty|default:"" }}</td><td class="text-right">{{ li.amount|inr }}</td></tr>{% endfor %}</tbody></table>
+      {% endif %}
+    </div>
+    {% if can_act %}
+    <form method="post" class="card space-y-4" data-testid="action-panel" novalidate>{% csrf_token %}
+      <h2 class="h2">{% if is_finance_step %}Finance pre-check{% else %}{{ invoice.current_level }} approval{% endif %}</h2>
+      {% include "partials/form_errors.html" %}
+      {% if is_finance_step %}
+      <div class="grid gap-4 md:grid-cols-3">
+        {% include "partials/field.html" with field=form.tds_section %}
+        {% include "partials/field.html" with field=form.tds_amount %}
+        {% include "partials/field.html" with field=form.cost_centre %}
+      </div>
+      {% endif %}
+      <div><label class="label" for="id_comment">Comment <span class="muted">(required to reject or query)</span></label><textarea name="comment" id="id_comment" rows="3" class="input" data-testid="action-comment">{{ form.comment.value|default:"" }}</textarea>{% for e in form.comment.errors %}<p class="errorlist" data-testid="action-error">{{ e }}</p>{% endfor %}</div>
+      <div class="flex flex-wrap gap-2">
+        <button name="action" value="APPROVE" class="btn btn-primary" data-testid="invoice-approve-btn">{% if is_finance_step %}Forward to L1{% else %}Approve{% endif %}</button>
+        <button name="action" value="QUERY" class="btn btn-warning" data-testid="invoice-query-btn">Raise query</button>
+        <button name="action" value="REJECT" class="btn btn-danger" data-testid="invoice-reject-btn">Reject</button>
+      </div>
+    </form>
+    {% elif invoice.is_open %}
+    <div class="card text-sm text-slate-600" data-testid="cannot-act">{{ reason }}</div>
+    {% endif %}
+    <div class="card"><h2 class="h2 mb-2">Query thread</h2>{% include "partials/messages_thread.html" %}</div>
+    <div class="card overflow-x-auto"><h2 class="h2 mb-2">Payments</h2>
+      <table class="table"><thead><tr><th>Date</th><th class="text-right">Amount</th><th class="text-right">TDS</th><th>UTR</th><th>By</th></tr></thead>
+      <tbody>{% for p in payments %}<tr data-testid="payment-row"><td>{{ p.paid_on|date:"d M Y" }}</td><td class="text-right">{{ p.amount|inr }}</td><td class="text-right">{{ p.tds_deducted|inr }}</td><td>{{ p.utr }}</td><td>{{ p.recorded_by.name }}</td></tr>{% empty %}<tr><td colspan="5" class="muted">No payments.</td></tr>{% endfor %}</tbody></table>
+      {% if user|can:"payment.record" and invoice.status in "APPROVED PARTLY_PAID" %}<a class="btn btn-primary mt-3" href="{% url 'console:record_payment' invoice.pk %}" data-testid="payment-record-link">Record payment</a>{% endif %}
+    </div>
+  </div>
+  <div class="card"><h2 class="h2 mb-3">Approval history</h2>{% include "partials/approval_history.html" %}</div>
+</div>
+{% endblock %}

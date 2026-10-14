@@ -1,0 +1,62 @@
+{% load static %}<!doctype html>
+<html lang="en" class="h-full bg-slate-100">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}Vendor Portal{% endblock %} · Solfin</title>
+  <link rel="stylesheet" href="{% static 'css/app.css' %}">
+  <script src="{% static 'js/htmx.min.js' %}" defer></script>
+  <script src="{% static 'js/app.js' %}" defer></script>
+</head>
+<body class="h-full" hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'>
+  <nav class="bg-indigo-800">
+    <div class="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-2 px-4 py-2">
+      <div class="flex flex-wrap items-center gap-1">
+        <a href="/" class="mr-4 text-lg font-semibold text-white">Solfin Vendor Portal</a>
+        {% if user.is_authenticated %}
+          {% if user.is_internal %}
+            <a class="nav-link" href="{% url 'console:home' %}" data-testid="nav-queue">My queue</a>
+            {% if user|can:"vendor.view_all" %}<a class="nav-link" href="{% url 'console:vendors' %}" data-testid="nav-vendors">Vendors</a>{% endif %}
+            {% if user|can:"invoice.view_all" %}<a class="nav-link" href="{% url 'console:invoices' %}" data-testid="nav-invoices">Invoices</a>{% endif %}
+            {% if user|can:"payment.record" %}<a class="nav-link" href="{% url 'console:payment_queue' %}" data-testid="nav-payments">Payments</a>{% endif %}
+            {% if user|can:"bank.approve" %}<a class="nav-link" href="{% url 'console:bank_changes' %}" data-testid="nav-bank-changes">Bank changes</a>{% endif %}
+            {% if user|can:"report.view" %}<a class="nav-link" href="{% url 'console:report' 'ageing' %}" data-testid="nav-reports">Reports</a>{% endif %}
+            {% if user|can:"admin.users" %}<a class="nav-link" href="{% url 'console:admin_users' %}" data-testid="nav-admin">Admin</a>{% endif %}
+            {% if user|can:"audit.view" %}<a class="nav-link" href="{% url 'console:audit' %}" data-testid="nav-audit">Audit log</a>{% endif %}
+          {% else %}
+            <a class="nav-link" href="{% url 'vendor:home' %}" data-testid="nav-dashboard">Dashboard</a>
+            {% if user.vendor.status == "ACTIVE" %}
+              <a class="nav-link" href="{% url 'vendor:invoices' %}" data-testid="nav-invoices">Invoices</a>
+              <a class="nav-link" href="{% url 'vendor:payments' %}" data-testid="nav-payments">Payments</a>
+              <a class="nav-link" href="{% url 'vendor:profile' %}" data-testid="nav-profile">Profile</a>
+              {% if user|can:"vendor.edit_bank" %}<a class="nav-link" href="{% url 'vendor:bank' %}" data-testid="nav-bank">Bank details</a>{% endif %}
+            {% else %}
+              <a class="nav-link" href="{% url 'vendor:onboarding' %}" data-testid="nav-onboarding">Registration</a>
+            {% endif %}
+            {% if user|can:"vendor.manage_users" %}<a class="nav-link" href="{% url 'vendor:users' %}" data-testid="nav-users">Users</a>{% endif %}
+          {% endif %}
+        {% endif %}
+      </div>
+      {% if user.is_authenticated %}
+      <div class="flex items-center gap-3 text-sm text-indigo-100">
+        {% include "partials/bell.html" %}
+        <span data-testid="current-user">{{ user.name }}{% if not user.is_internal %} · {{ user.vendor.vendor_code }}{% endif %}</span>
+        <form method="post" action="{% url 'accounts:logout' %}">{% csrf_token %}
+          <button class="rounded-md bg-indigo-700 px-2 py-1 text-white hover:bg-indigo-600" data-testid="logout-btn">Sign out</button>
+        </form>
+      </div>
+      {% endif %}
+    </div>
+  </nav>
+  <main class="mx-auto max-w-7xl px-4 py-6">
+    {% if messages %}
+      <div class="mb-4 space-y-2" data-testid="flash-messages">
+        {% for m in messages %}
+          <div class="rounded-md px-4 py-2 text-sm {% if m.tags == 'error' %}bg-red-50 text-red-800{% elif m.tags == 'success' %}bg-green-50 text-green-800{% else %}bg-blue-50 text-blue-800{% endif %}" data-testid="flash-{{ m.tags }}">{{ m }}</div>
+        {% endfor %}
+      </div>
+    {% endif %}
+    {% block content %}{% endblock %}
+  </main>
+</body>
+</html>

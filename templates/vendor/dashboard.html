@@ -1,0 +1,18 @@
+{% extends "base.html" %}{% block title %}Dashboard{% endblock %}
+{% block content %}
+<div class="mb-6 flex items-center justify-between">
+  <div><h1 class="h1" data-testid="vendor-dashboard">{{ vendor.legal_name }}</h1><p class="muted">Vendor code {{ vendor.vendor_code }}</p></div>
+  {% if user|can:"invoice.upload" %}<a class="btn btn-primary" href="{% url 'vendor:invoice_upload' %}" data-testid="invoice-upload-link">Upload invoice</a>{% endif %}
+</div>
+{% if vendor.has_pending_bank_change %}<div class="mb-4 rounded-md bg-amber-50 p-3 text-sm text-amber-900" data-testid="bank-change-pending">A bank details change is awaiting verification. Payments are on hold until it is approved.</div>{% endif %}
+<div class="grid gap-4 md:grid-cols-4">
+  <a href="{% url 'vendor:invoices' %}" class="card"><div class="muted">In approval</div><div class="text-2xl font-semibold" data-testid="count-open">{{ counts.open }}</div></a>
+  <a href="{% url 'vendor:invoices' %}?status=QUERY_RAISED" class="card"><div class="muted">Queries to answer</div><div class="text-2xl font-semibold text-amber-600" data-testid="count-query">{{ counts.query }}</div></a>
+  <a href="{% url 'vendor:invoices' %}?status=APPROVED" class="card"><div class="muted">Approved, awaiting payment</div><div class="text-2xl font-semibold" data-testid="count-approved">{{ counts.approved }}</div></a>
+  <a href="{% url 'vendor:invoices' %}?status=PAID" class="card"><div class="muted">Paid</div><div class="text-2xl font-semibold text-green-700" data-testid="count-paid">{{ counts.paid }}</div></a>
+</div>
+<div class="card mt-6 overflow-x-auto p-0">
+  <h2 class="h2 px-4 pt-4">Recent invoices</h2>
+  {% include "vendor/_invoice_table.html" with invoices=recent %}
+</div>
+{% endblock %}

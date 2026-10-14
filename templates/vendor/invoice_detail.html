@@ -1,0 +1,45 @@
+{% extends "base.html" %}{% block title %}{{ invoice.portal_ref }}{% endblock %}
+{% block content %}
+<div class="mb-4 flex flex-wrap items-center justify-between gap-2">
+  <div><h1 class="h1" data-testid="invoice-ref">{{ invoice.portal_ref }}</h1><p class="muted">Invoice {{ invoice.invoice_no }} · {{ invoice.invoice_date|date:"d M Y" }}</p></div>
+  {% status_badge invoice.status invoice.get_status_display %}
+</div>
+<div class="grid gap-6 lg:grid-cols-3">
+  <div class="space-y-6 lg:col-span-2">
+    {% if invoice.status == "QUERY_RAISED" and user|can:"invoice.reply" %}
+    <div class="card border-amber-300" data-testid="query-panel">
+      <h2 class="h2 mb-2">Solfin has a question about this invoice</h2>
+      {% include "partials/messages_thread.html" %}
+      <form method="post" enctype="multipart/form-data" class="mt-4 space-y-3">{% csrf_token %}
+        {% include "partials/form_errors.html" %}
+        <textarea name="body" rows="3" class="input" required data-testid="reply-body"></textarea>
+        <input type="file" name="file" accept=".pdf,.jpg,.jpeg,.png" class="text-sm" data-testid="reply-file">
+        <button class="btn btn-primary" data-testid="reply-send-btn">Send reply</button>
+      </form>
+    </div>
+    {% elif messages_thread %}
+    <div class="card"><h2 class="h2 mb-2">Messages</h2>{% include "partials/messages_thread.html" %}</div>
+    {% endif %}
+    <div class="card">
+      <h2 class="h2 mb-3">Details</h2>
+      <dl class="grid grid-cols-2 gap-3 text-sm md:grid-cols-3">
+        <div><dt class="muted">Supplier GSTIN</dt><dd>{{ invoice.gstin.gstin }}</dd></div>
+        <div><dt class="muted">Cost centre</dt><dd>{{ invoice.cost_centre }}</dd></div>
+        <div><dt class="muted">Taxable</dt><dd>{{ invoice.taxable|inr }}</dd></div>
+        <div><dt class="muted">GST</dt><dd>{{ invoice.gst_total|inr }}</dd></div>
+        <div><dt class="muted">Total</dt><dd class="font-semibold" data-testid="invoice-total">{{ invoice.total|inr }}</dd></div>
+        <div><dt class="muted">Expected payment</dt><dd data-testid="invoice-due-date">{{ invoice.due_date|date:"d M Y"|default:"After approval" }}</dd></div>
+        <div><dt class="muted">Paid</dt><dd data-testid="invoice-paid">{{ invoice.paid_amount|inr }}</dd></div>
+        <div><dt class="muted">TDS deducted</dt><dd>{{ invoice.tds_deducted|inr }}</dd></div>
+        <div><dt class="muted">Outstanding</dt><dd data-testid="invoice-outstanding">{{ invoice.outstanding|inr }}</dd></div>
+      </dl>
+      <p class="mt-3 text-sm"><a class="text-indigo-700 underline" href="{% url 'vendor:file' invoice.file.pk %}" target="_blank" data-testid="invoice-file-link">View invoice file</a></p>
+    </div>
+    <div class="card overflow-x-auto"><h2 class="h2 mb-2">Payments</h2>
+      <table class="table"><thead><tr><th>Date</th><th class="text-right">Amount</th><th class="text-right">TDS</th><th>UTR</th></tr></thead>
+      <tbody>{% for p in payments %}<tr data-testid="payment-row"><td>{{ p.paid_on|date:"d M Y" }}</td><td class="text-right">{{ p.amount|inr }}</td><td class="text-right">{{ p.tds_deducted|inr }}</td><td>{{ p.utr }}</td></tr>{% empty %}<tr><td colspan="4" class="muted">No payments yet.</td></tr>{% endfor %}</tbody></table>
+    </div>
+  </div>
+  <div class="card"><h2 class="h2 mb-3">Progress</h2>{% include "partials/approval_history.html" %}</div>
+</div>
+{% endblock %}

@@ -122,14 +122,13 @@ def seed_demo():
     if cc.l1_owner_id is None:
         cc.l1_owner = users["l1"]
         cc.save()
-    users["vendor_a"] = None
     vendor_a = _vendor("V00001", "Acme Supplies Private Limited", "vendora@test.local", "27", "AAACA1234A", "Arjun Acme")
     vendor_b = _vendor("V00002", "Bharat Traders Private Limited", "vendorb@test.local", "29", "AAACB5678B", "Bina Bharat")
     a_user = _user("vendora.user@test.local", "Anil Accounts", "VENDOR", ["VENDOR_USER"])
     from apps.vendors.models import VendorUser
 
     VendorUser.objects.get_or_create(user=a_user, defaults={"vendor": vendor_a, "is_admin": False})
-    return {"vendor_a": vendor_a, "vendor_b": vendor_b, "cost_centre": CostCentre.objects.get(code="CC-OPS"), **users}
+    return {**users, "vendor_a": vendor_a, "vendor_b": vendor_b, "cost_centre": CostCentre.objects.get(code="CC-OPS")}
 
 
 def sample_invoice(vendor, user, *, total, invoice_no, status="DRAFT", cost_centre=None):

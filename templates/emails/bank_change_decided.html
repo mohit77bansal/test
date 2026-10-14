@@ -1,0 +1,2 @@
+{% extends "emails/_base.html" %}
+{% block body %}<p>The bank details change for <strong>{{ vendor_name }}</strong> (account ending {{ last4 }}) was <strong>{{ decision }}</strong>.</p>{% if remarks %}<p>Remarks: {{ remarks }}</p>{% endif %}{% endblock %}

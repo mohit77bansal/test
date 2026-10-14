@@ -1,0 +1,12 @@
+{% extends "accounts/_auth_base.html" %}{% block title %}Sign in{% endblock %}
+{% block card %}
+<h1 class="h1 mb-4">Sign in</h1>
+{% if error %}<div class="mb-4 rounded-md bg-red-50 px-3 py-2 text-sm text-red-800" data-testid="login-error">{{ error }}</div>{% endif %}
+<form method="post" class="space-y-4" novalidate>{% csrf_token %}
+  <input type="hidden" name="next" value="{{ next }}">
+  <div><label class="label" for="id_email">Email</label><input class="input" type="email" name="email" id="id_email" value="{{ form.email.value|default:'' }}" required autofocus data-testid="login-email"></div>
+  <div><label class="label" for="id_password">Password</label><input class="input" type="password" name="password" id="id_password" required data-testid="login-password"></div>
+  <button class="btn btn-primary w-full justify-center" data-testid="login-submit-btn">Continue</button>
+</form>
+<p class="mt-4 text-center text-sm"><a class="text-indigo-700 hover:underline" href="{% url 'accounts:password_reset' %}" data-testid="forgot-password-link">Forgot password?</a></p>
+{% endblock %}

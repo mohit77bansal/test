@@ -1,0 +1,8 @@
+<ol class="space-y-2 text-sm" data-testid="approval-history">
+  {% for a in actions %}
+    <li class="flex gap-2" data-testid="history-row" data-action="{{ a.action }}" data-level="{{ a.level }}">
+      <span class="w-32 shrink-0 text-xs text-slate-500">{{ a.acted_at|date:"d M Y H:i" }}</span>
+      <span><strong>{{ a.get_action_display }}</strong>{% if a.level != "VENDOR" %} at {{ a.level }}{% endif %} by {{ a.actor.name }}{% if a.comment %} — <em>{{ a.comment }}</em>{% endif %}</span>
+    </li>
+  {% empty %}<li class="muted">No actions yet.</li>{% endfor %}
+</ol>

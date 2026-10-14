@@ -1,0 +1,14 @@
+{% extends "base.html" %}{% block title %}Invoices{% endblock %}
+{% block content %}
+<div class="mb-4 flex flex-wrap items-center justify-between gap-2">
+  <h1 class="h1">Invoices</h1>
+  <div class="flex gap-2">{% include "partials/export_buttons.html" %}{% if user|can:"invoice.upload" and user.vendor.status == "ACTIVE" %}<a class="btn btn-primary" href="{% url 'vendor:invoice_upload' %}" data-testid="invoice-upload-link">Upload invoice</a>{% endif %}</div>
+</div>
+<form class="mb-4 flex gap-2" method="get"><select name="status" class="input w-56" data-testid="status-filter"><option value="">All statuses</option>{% for v, l in statuses %}{% if v != "DRAFT" %}<option value="{{ v }}" {% if v == status %}selected{% endif %}>{{ l }}</option>{% endif %}{% endfor %}</select><button class="btn">Filter</button></form>
+{% if drafts %}
+<div class="card mb-4"><h2 class="h2 mb-2">Drafts not yet submitted</h2>
+  <ul class="space-y-1 text-sm">{% for d in drafts %}<li data-testid="draft-row"><a class="text-indigo-700 underline" href="{% url 'vendor:invoice_edit' d.pk %}">{{ d.file.original_name }}</a> <span class="muted">uploaded {{ d.created_at|date:"d M H:i" }}</span></li>{% endfor %}</ul>
+</div>
+{% endif %}
+<div class="card overflow-x-auto p-0">{% include "vendor/_invoice_table.html" %}</div>
+{% endblock %}

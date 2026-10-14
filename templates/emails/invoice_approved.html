@@ -1,0 +1,2 @@
+{% extends "emails/_base.html" %}
+{% block body %}<p>Invoice <strong>{{ invoice_no }}</strong> ({{ portal_ref }}) for {{ total }} has been approved.</p><p>Expected payment date: <strong>{{ due_date }}</strong>.</p>{% endblock %}

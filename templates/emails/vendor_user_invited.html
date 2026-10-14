@@ -1,0 +1,2 @@
+{% extends "emails/_base.html" %}
+{% block body %}<p>Hello {{ name }},</p><p>You have been added as a user for <strong>{{ vendor_name }}</strong> ({{ vendor_code }}). Set your password with the link below (valid until {{ expires }}).</p>{% endblock %}

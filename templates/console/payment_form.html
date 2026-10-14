@@ -1,0 +1,16 @@
+{% extends "base.html" %}{% block title %}Record payment{% endblock %}
+{% block content %}
+<form method="post" class="card mx-auto max-w-xl space-y-4" novalidate>{% csrf_token %}
+  <h1 class="h1">Record payment — {{ invoice.portal_ref }}</h1>
+  <p class="muted">{{ invoice.vendor.legal_name }} · total {{ invoice.total|inr }} · outstanding <span data-testid="outstanding">{{ invoice.outstanding|inr }}</span>{% if invoice.tds_section %} · TDS {{ invoice.tds_section }} {{ invoice.tds_amount|inr }}{% endif %}</p>
+  {% if on_hold %}<div class="rounded-md bg-amber-50 p-3 text-sm text-amber-900" data-testid="payment-hold">Payment is on hold: the vendor's bank-detail change has not been approved yet.</div>{% endif %}
+  {% include "partials/form_errors.html" %}
+  <div class="grid gap-4 md:grid-cols-2">
+    {% include "partials/field.html" with field=form.amount %}
+    {% include "partials/field.html" with field=form.tds_deducted %}
+    {% include "partials/field.html" with field=form.paid_on %}
+    {% include "partials/field.html" with field=form.utr %}
+  </div>
+  <button class="btn btn-primary" data-testid="payment-submit-btn">Record payment</button>
+</form>
+{% endblock %}

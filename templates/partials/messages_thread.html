@@ -1,0 +1,11 @@
+<div class="space-y-3" data-testid="message-thread">
+  {% for m in messages_thread %}
+    <div class="rounded-md border border-slate-200 p-3 {% if m.from_user.is_internal %}bg-indigo-50{% else %}bg-white{% endif %}" data-testid="message">
+      <div class="mb-1 text-xs text-slate-500">{{ m.from_user.name }}{% if m.from_user.is_internal %} (Solfin){% endif %} · {{ m.created_at|date:"d M Y H:i" }}</div>
+      <div class="whitespace-pre-line text-sm" data-testid="message-body">{{ m.body }}</div>
+      {% if m.file %}<a class="text-xs text-indigo-700 underline" href="{% if user.is_internal %}{% url 'console:file' m.file.pk %}{% else %}{% url 'vendor:file' m.file.pk %}{% endif %}">{{ m.file.original_name }}</a>{% endif %}
+    </div>
+  {% empty %}
+    <p class="muted">No messages.</p>
+  {% endfor %}
+</div>

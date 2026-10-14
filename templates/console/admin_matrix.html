@@ -1,0 +1,17 @@
+{% extends "base.html" %}{% block title %}Approval matrix{% endblock %}
+{% block content %}
+{% include "console/_admin_tabs.html" with tab="matrix" %}
+<h1 class="h1 mb-1">Approval matrix</h1>
+<p class="muted mb-4">Invoices up to the L1 limit stop at L1; up to the L2 limit stop at L2; above that need L3. The most specific row (category + cost centre) wins. Changes apply to invoices submitted from now on.</p>
+<form method="post" class="card overflow-x-auto p-0">{% csrf_token %}{{ formset.management_form }}
+  {% if formset.non_form_errors %}<div class="p-3 text-sm text-red-700">{{ formset.non_form_errors }}</div>{% endif %}
+  <table class="table" data-testid="matrix-table"><thead><tr><th>Category</th><th>Cost centre</th><th>L1 limit</th><th>L2 limit</th><th>L3 above</th><th>Active</th></tr></thead>
+  <tbody>{% for f in formset %}<tr data-testid="matrix-row-{{ forloop.counter0 }}">{{ f.id }}
+    <td>{{ f.category }}</td><td>{{ f.cost_centre }}</td>
+    <td><input type="number" step="0.01" name="{{ f.l1_max.html_name }}" value="{{ f.l1_max.value|default:'' }}" class="input w-36" data-testid="matrix-l1-{{ forloop.counter0 }}"></td>
+    <td><input type="number" step="0.01" name="{{ f.l2_max.html_name }}" value="{{ f.l2_max.value|default:'' }}" class="input w-36" data-testid="matrix-l2-{{ forloop.counter0 }}"></td>
+    <td><input type="number" step="0.01" name="{{ f.requires_l3_above.html_name }}" value="{{ f.requires_l3_above.value|default:'' }}" class="input w-36" data-testid="matrix-l3-{{ forloop.counter0 }}"></td>
+    <td>{{ f.is_active }}{% if f.errors %}<div class="errorlist">{{ f.errors }}</div>{% endif %}</td></tr>{% endfor %}</tbody></table>
+  <div class="p-4"><button class="btn btn-primary" data-testid="matrix-save-btn">Save matrix</button></div>
+</form>
+{% endblock %}

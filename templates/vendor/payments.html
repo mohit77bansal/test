@@ -1,0 +1,14 @@
+{% extends "base.html" %}{% block title %}Payments{% endblock %}
+{% block content %}
+<div class="mb-4 flex items-center justify-between"><h1 class="h1">Payments</h1>{% include "partials/export_buttons.html" %}</div>
+<div class="card mb-6 overflow-x-auto p-0">
+  <h2 class="h2 px-4 pt-4">Outstanding</h2>
+  <table class="table" data-testid="outstanding-table"><thead><tr><th>Portal ref</th><th>Invoice no</th><th class="text-right">Total</th><th class="text-right">Paid</th><th class="text-right">Outstanding</th><th>Expected</th></tr></thead>
+  <tbody>{% for i in outstanding %}<tr data-testid="outstanding-row-{{ i.portal_ref }}"><td><a class="text-indigo-700 underline" href="{% url 'vendor:invoice_detail' i.pk %}">{{ i.portal_ref }}</a></td><td>{{ i.invoice_no }}</td><td class="text-right">{{ i.total|inr }}</td><td class="text-right">{{ i.paid_amount|inr }}</td><td class="text-right">{{ i.outstanding|inr }}</td><td>{{ i.due_date|date:"d M Y" }}</td></tr>{% empty %}<tr><td colspan="6" class="muted">Nothing outstanding.</td></tr>{% endfor %}</tbody></table>
+</div>
+<div class="card overflow-x-auto p-0">
+  <h2 class="h2 px-4 pt-4">Payment history</h2>
+  <table class="table" data-testid="payment-history"><thead><tr><th>Paid on</th><th>Portal ref</th><th>Invoice no</th><th class="text-right">Amount</th><th class="text-right">TDS</th><th>UTR</th></tr></thead>
+  <tbody>{% for p in payments %}<tr data-testid="payment-row"><td>{{ p.paid_on|date:"d M Y" }}</td><td>{{ p.invoice.portal_ref }}</td><td>{{ p.invoice.invoice_no }}</td><td class="text-right">{{ p.amount|inr }}</td><td class="text-right">{{ p.tds_deducted|inr }}</td><td data-testid="payment-utr">{{ p.utr }}</td></tr>{% empty %}<tr><td colspan="6" class="muted">No payments yet.</td></tr>{% endfor %}</tbody></table>
+</div>
+{% endblock %}

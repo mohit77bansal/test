@@ -1,0 +1,4 @@
+<div class="flex gap-2">
+  <a class="btn btn-sm" href="?{% if request.GET.urlencode %}{{ request.GET.urlencode }}&{% endif %}export=csv" data-testid="export-csv-btn">Export CSV</a>
+  <a class="btn btn-sm" href="?{% if request.GET.urlencode %}{{ request.GET.urlencode }}&{% endif %}export=xlsx" data-testid="export-xlsx-btn">Export Excel</a>
+</div>

@@ -1,0 +1,2 @@
+{% extends "emails/_base.html" %}
+{% block body %}<p>Invoice <strong>{{ portal_ref }}</strong> from {{ vendor_name }} ({{ vendor_code }}) for {{ total }} is awaiting your {{ level_label }}.</p><p>Invoice number {{ invoice_no }}.</p>{% endblock %}

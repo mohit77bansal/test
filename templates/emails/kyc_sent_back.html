@@ -1,0 +1,2 @@
+{% extends "emails/_base.html" %}
+{% block body %}<p>Your registration for <strong>{{ vendor_name }}</strong> needs changes before it can be approved.</p><p><strong>Remarks:</strong> {{ remarks }}</p>{% if documents %}<ul>{% for d in documents %}<li>{{ d.document }}: {{ d.remarks }}</li>{% endfor %}</ul>{% endif %}{% endblock %}

@@ -1,0 +1,66 @@
+{% extends "base.html" %}{% block title %}{{ vendor.vendor_code }}{% endblock %}
+{% block content %}
+<div class="mb-4 flex flex-wrap items-center justify-between gap-2">
+  <div><h1 class="h1">{{ vendor.legal_name }}</h1><p class="muted">{{ vendor.vendor_code }} · {{ vendor.get_category_display }} · invited by {{ vendor.invited_by.name }}</p></div>
+  <span data-testid="vendor-status">{% status_badge vendor.status %}</span>
+</div>
+{% if is_inviter and vendor.status in "SUBMITTED UNDER_REVIEW" %}<div class="mb-4 rounded-md bg-blue-50 p-3 text-sm text-blue-900" data-testid="inviter-notice">You invited this vendor, so another Vendor Manager must review its KYC and activate it.</div>{% endif %}
+{% if mismatches %}<div class="mb-4 rounded-md border border-amber-300 bg-amber-50 p-3 text-sm text-amber-900" data-testid="parse-mismatch"><strong>Parsed documents differ from the form:</strong><ul class="ml-5 list-disc">{% for m in mismatches %}<li>{{ m.field }}: typed <code>{{ m.typed }}</code>, document <code>{{ m.parsed }}</code></li>{% endfor %}</ul></div>{% endif %}
+<div class="grid gap-6 lg:grid-cols-3">
+  <div class="space-y-6 lg:col-span-2">
+    <div class="card overflow-x-auto p-0">
+      <h2 class="h2 px-4 pt-4">KYC documents</h2>
+      <table class="table"><thead><tr><th>Document</th><th>File</th><th>Parsed</th><th>Status</th>{% if can_review %}<th>Review</th>{% endif %}</tr></thead>
+      <tbody>
+      {% for r in rows %}
+        <tr data-testid="kyc-doc-{{ r.type.code }}">
+          <td>{{ r.type.name }}{% if r.type.mandatory %} <span class="text-red-500">*</span>{% endif %}{% if r.doc.valid_to %}<div class="text-xs text-slate-500">valid to {{ r.doc.valid_to|date:"d M Y" }}</div>{% endif %}</td>
+          <td>{% if r.doc %}<a class="text-indigo-700 underline" href="{% url 'console:file' r.doc.file.pk %}" target="_blank">{{ r.doc.file.original_name }}</a>{% else %}<span class="muted">Missing</span>{% endif %}</td>
+          <td class="text-xs">{% if r.doc.parse_job.extracted_json %}{% for k, v in r.doc.parse_job.extracted_json.items %}{% if v %}<div><span class="text-slate-400">{{ k }}:</span> {{ v }}</div>{% endif %}{% endfor %}{% endif %}</td>
+          <td data-testid="doc-status-{{ r.type.code }}">{% if r.doc %}{% status_badge r.doc.status %}{% if r.doc.remarks %}<div class="text-xs text-slate-600">{{ r.doc.remarks }}</div>{% endif %}{% endif %}</td>
+          {% if can_review %}<td>{% if r.doc %}
+            <form method="post" action="{% url 'console:review_document' vendor.pk r.doc.pk %}" class="flex flex-col gap-1">{% csrf_token %}
+              <input name="remarks" class="input py-1 text-xs" placeholder="Remarks" data-testid="doc-remarks-{{ r.type.code }}">
+              <div class="flex gap-1"><button name="decision" value="approve" class="btn btn-sm" data-testid="doc-approve-btn-{{ r.type.code }}">Approve</button><button name="decision" value="reject" class="btn btn-sm btn-danger" data-testid="doc-reject-btn-{{ r.type.code }}">Reject</button></div>
+            </form>{% endif %}</td>{% endif %}
+        </tr>
+      {% endfor %}
+      </tbody></table>
+    </div>
+    {% if can_review %}
+    <div class="card space-y-3" data-testid="vendor-review-panel">
+      <h2 class="h2">Decision</h2>
+      <form method="post" action="{% url 'console:vendor_action' vendor.pk 'activate' %}">{% csrf_token %}<button class="btn btn-primary" data-testid="vendor-activate-btn">Activate vendor</button></form>
+      <form method="post" action="{% url 'console:vendor_action' vendor.pk 'send-back' %}" class="flex flex-wrap gap-2">{% csrf_token %}<input name="remarks" class="input flex-1" placeholder="What should the vendor fix?" data-testid="sendback-remarks"><button class="btn btn-warning" data-testid="vendor-sendback-btn">Send back</button></form>
+      <form method="post" action="{% url 'console:vendor_action' vendor.pk 'reject' %}" class="flex flex-wrap gap-2" data-confirm="Reject this vendor? This is final.">{% csrf_token %}<input name="remarks" class="input flex-1" placeholder="Reason" data-testid="vendor-reject-remarks"><button class="btn btn-danger" data-testid="vendor-reject-btn">Reject vendor</button></form>
+    </div>
+    {% endif %}
+    {% if user|can:"vendor.block" %}
+      {% if vendor.status == "ACTIVE" %}
+      <form method="post" action="{% url 'console:vendor_action' vendor.pk 'block' %}" class="card flex flex-wrap gap-2">{% csrf_token %}<input name="remarks" class="input flex-1" placeholder="Reason for blocking" data-testid="block-reason"><button class="btn btn-danger" data-testid="vendor-block-btn">Block vendor</button></form>
+      {% elif vendor.status == "BLOCKED" %}
+      <form method="post" action="{% url 'console:vendor_action' vendor.pk 'unblock' %}" class="card">{% csrf_token %}<p class="mb-2 text-sm">Blocked: {{ vendor.block_reason }}</p><button class="btn" data-testid="vendor-unblock-btn">Unblock</button></form>
+      {% endif %}
+    {% endif %}
+  </div>
+  <div class="space-y-6">
+    <div class="card text-sm">
+      <h2 class="h2 mb-2">Profile</h2>
+      <dl class="space-y-1">
+        <div><dt class="muted inline">PAN:</dt> <dd class="inline">{% if show_full %}{{ vendor.pan }}{% else %}XXXXXX{{ vendor.pan_last4 }}{% endif %}</dd></div>
+        <div><dt class="muted inline">Constitution:</dt> <dd class="inline">{{ vendor.get_constitution_display }}</dd></div>
+        <div><dt class="muted inline">MSME:</dt> <dd class="inline">{{ vendor.get_msme_status_display }} {{ vendor.udyam_no }} {{ vendor.msme_type }}</dd></div>
+        <div><dt class="muted inline">Contact:</dt> <dd class="inline">{{ vendor.contact_name }} · {{ vendor.contact_email }} · {{ vendor.contact_phone }}</dd></div>
+        <div><dt class="muted inline">Address:</dt> <dd class="inline">{{ vendor.address }}</dd></div>
+      </dl>
+    </div>
+    <div class="card text-sm"><h2 class="h2 mb-2">GSTINs</h2>
+      <ul class="space-y-1">{% for g in gstins %}<li class="flex items-center gap-2">{{ g.gstin }}{% if g.verified_at %}<span class="badge badge-green">Verified</span>{% else %}<span class="badge badge-amber">Unverified</span>{% if user|can:"vendor.verify_gstin" and vendor.status == "ACTIVE" %}<form method="post" action="{% url 'console:verify_gstin' vendor.pk g.pk %}">{% csrf_token %}<button class="btn btn-sm" data-testid="gstin-verify-btn">Verify</button></form>{% endif %}{% endif %}</li>{% endfor %}</ul>
+    </div>
+    <div class="card text-sm"><h2 class="h2 mb-2">Bank accounts</h2>
+      <ul class="space-y-1">{% for a in accounts %}<li>v{{ a.version }} {{ a.bank_name }} {% if show_full %}{{ a.account_no }}{% else %}{{ a.masked }}{% endif %} {{ a.ifsc }} {% status_badge a.status %}</li>{% endfor %}</ul>
+    </div>
+    <div class="card text-sm"><h2 class="h2 mb-2">Users</h2><ul>{% for vu in users %}<li>{{ vu.user.name }} · {{ vu.user.email }}{% if vu.is_admin %} (admin){% endif %}{% if not vu.is_active %} — removed{% endif %}</li>{% endfor %}</ul></div>
+  </div>
+</div>
+{% endblock %}

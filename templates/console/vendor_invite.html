@@ -1,0 +1,12 @@
+{% extends "base.html" %}{% block title %}Invite vendor{% endblock %}
+{% block content %}
+<form method="post" class="card mx-auto max-w-xl space-y-4" novalidate>{% csrf_token %}
+  <h1 class="h1">Invite a vendor</h1>
+  <p class="muted">The vendor gets an email with a link valid for 7 days and the document checklist for its category.</p>
+  {% include "partials/form_errors.html" %}
+  {% include "partials/field.html" with field=form.legal_name %}
+  {% include "partials/field.html" with field=form.email %}
+  {% include "partials/field.html" with field=form.category %}
+  <button class="btn btn-primary" data-testid="invite-submit-btn">Send invitation</button>
+</form>
+{% endblock %}

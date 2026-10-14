@@ -1,0 +1,30 @@
+{% extends "base.html" %}{% block title %}My queue{% endblock %}
+{% block content %}
+<h1 class="h1 mb-4">Hello, {{ user.name }}</h1>
+<div class="mb-6 flex flex-wrap gap-3 text-sm">
+  {% if kyc_queue is not None %}<a class="card py-3" href="{% url 'console:vendors' %}?status=SUBMITTED" data-testid="kyc-queue-count">KYC to review: <strong>{{ kyc_queue|length }}</strong></a>{% endif %}
+  {% if payment_count is not None %}<a class="card py-3" href="{% url 'console:payment_queue' %}" data-testid="payment-queue-count">Awaiting payment: <strong>{{ payment_count }}</strong></a>{% endif %}
+  {% if bank_count is not None %}<a class="card py-3" href="{% url 'console:bank_changes' %}" data-testid="bank-change-count">Bank changes to verify: <strong>{{ bank_count }}</strong></a>{% endif %}
+</div>
+<div class="card overflow-x-auto p-0">
+  <h2 class="h2 px-4 pt-4">Invoices waiting for you</h2>
+  <table class="table" data-testid="queue-table">
+    <thead><tr><th>Portal ref</th><th>Vendor</th><th>Invoice no</th><th>Cost centre</th><th class="text-right">Total</th><th>Stage</th><th>Submitted</th></tr></thead>
+    <tbody>
+    {% for i in queue %}
+      <tr data-testid="queue-row-{{ i.portal_ref }}">
+        <td><a class="text-indigo-700 underline" href="{% url 'console:invoice_detail' i.pk %}" data-testid="queue-open-{{ i.portal_ref }}">{{ i.portal_ref }}</a></td>
+        <td>{{ i.vendor.legal_name }}</td><td>{{ i.invoice_no }}</td><td>{{ i.cost_centre.code }}</td><td class="text-right">{{ i.total|inr }}</td>
+        <td>{% status_badge i.status i.get_status_display %}</td><td>{{ i.submitted_at|date:"d M Y" }}</td>
+      </tr>
+    {% empty %}<tr><td colspan="7" class="muted" data-testid="queue-empty">Nothing waiting for you.</td></tr>{% endfor %}
+    </tbody>
+  </table>
+</div>
+{% if kyc_queue %}
+<div class="card mt-6 overflow-x-auto p-0">
+  <h2 class="h2 px-4 pt-4">Vendors awaiting KYC review</h2>
+  <table class="table"><tbody>{% for v in kyc_queue %}<tr data-testid="kyc-row-{{ v.vendor_code }}"><td><a class="text-indigo-700 underline" href="{% url 'console:vendor_detail' v.pk %}">{{ v.vendor_code }}</a></td><td>{{ v.legal_name }}</td><td>{% status_badge v.status %}</td></tr>{% endfor %}</tbody></table>
+</div>
+{% endif %}
+{% endblock %}

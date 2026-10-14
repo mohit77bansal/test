@@ -1,0 +1,13 @@
+{% extends "base.html" %}{% block title %}Invoices{% endblock %}
+{% block content %}
+<div class="mb-4 flex flex-wrap items-center justify-between gap-2"><h1 class="h1">All invoices</h1>{% include "partials/export_buttons.html" %}</div>
+<form class="mb-4 flex flex-wrap gap-2" method="get">
+  <input name="q" value="{{ q }}" placeholder="Ref, invoice no or vendor" class="input w-64">
+  <select name="status" class="input w-56"><option value="">All statuses</option>{% for v, l in statuses %}{% if v != "DRAFT" %}<option value="{{ v }}" {% if v == status %}selected{% endif %}>{{ l }}</option>{% endif %}{% endfor %}</select>
+  <button class="btn">Filter</button>
+</form>
+<div class="card overflow-x-auto p-0">
+  <table class="table" data-testid="invoice-table"><thead><tr><th>Portal ref</th><th>Vendor</th><th>Invoice no</th><th>Date</th><th>Cost centre</th><th class="text-right">Total</th><th>Status</th></tr></thead>
+  <tbody>{% for i in invoices %}<tr data-testid="invoice-row-{{ i.portal_ref }}"><td><a class="text-indigo-700 underline" href="{% url 'console:invoice_detail' i.pk %}">{{ i.portal_ref }}</a></td><td>{{ i.vendor.legal_name }}</td><td>{{ i.invoice_no }}</td><td>{{ i.invoice_date|date:"d M Y" }}</td><td>{{ i.cost_centre.code }}</td><td class="text-right">{{ i.total|inr }}</td><td>{% status_badge i.status i.get_status_display %}</td></tr>{% empty %}<tr><td colspan="7" class="muted">No invoices.</td></tr>{% endfor %}</tbody></table>
+</div>
+{% endblock %}

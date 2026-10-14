@@ -1,0 +1,27 @@
+{% extends "base.html" %}{% block title %}Profile{% endblock %}
+{% block content %}
+<h1 class="h1 mb-4">Company profile</h1>
+<div class="grid gap-6 lg:grid-cols-2">
+  <div class="card text-sm">
+    <dl class="grid grid-cols-2 gap-3">
+      <div><dt class="muted">Vendor code</dt><dd>{{ vendor.vendor_code }}</dd></div>
+      <div><dt class="muted">Status</dt><dd>{% status_badge vendor.status %}</dd></div>
+      <div><dt class="muted">Legal name</dt><dd>{{ vendor.legal_name }}</dd></div>
+      <div><dt class="muted">PAN</dt><dd>XXXXXX{{ vendor.pan_last4 }}</dd></div>
+      <div><dt class="muted">Category</dt><dd>{{ vendor.get_category_display }}</dd></div>
+      <div><dt class="muted">MSME</dt><dd>{{ vendor.get_msme_status_display }} {{ vendor.udyam_no }}</dd></div>
+      <div><dt class="muted">Bank account</dt><dd>{{ account.bank_name }} {{ account.masked }}</dd></div>
+    </dl>
+  </div>
+  <div class="card">
+    <h2 class="h2 mb-2">GSTINs</h2>
+    <ul class="mb-4 space-y-1 text-sm">{% for g in gstins %}<li data-testid="gstin-row">{{ g.gstin }} {% if g.is_primary %}<span class="badge badge-blue">Primary</span>{% endif %} {% if g.verified_at %}<span class="badge badge-green">Verified</span>{% else %}<span class="badge badge-amber">Awaiting verification</span>{% endif %}</li>{% endfor %}</ul>
+    {% if user|can:"vendor.edit_profile" %}
+    <form method="post" class="space-y-3">{% csrf_token %}{% include "partials/form_errors.html" with form=gform %}
+      {% include "partials/field.html" with field=gform.gstin %}{% include "partials/field.html" with field=gform.address %}
+      <button class="btn" data-testid="gstin-add-btn">Add GSTIN</button>
+    </form>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,16 @@
+{% extends "base.html" %}{% block title %}Vendors{% endblock %}
+{% block content %}
+<div class="mb-4 flex flex-wrap items-center justify-between gap-2">
+  <h1 class="h1">Vendors</h1>
+  <div class="flex gap-2">{% include "partials/export_buttons.html" %}{% if user|can:"vendor.invite" %}<a class="btn btn-primary" href="{% url 'console:vendor_invite' %}" data-testid="vendor-invite-link">Invite vendor</a>{% endif %}</div>
+</div>
+<form class="mb-4 flex flex-wrap gap-2" method="get">
+  <input name="q" value="{{ q }}" placeholder="Search name or code" class="input w-64" data-testid="vendor-search">
+  <select name="status" class="input w-48"><option value="">All statuses</option>{% for v, l in statuses %}<option value="{{ v }}" {% if v == status %}selected{% endif %}>{{ l }}</option>{% endfor %}</select>
+  <button class="btn">Filter</button>
+</form>
+<div class="card overflow-x-auto p-0">
+  <table class="table" data-testid="vendor-table"><thead><tr><th>Code</th><th>Name</th><th>Category</th><th>Status</th><th>Owner</th></tr></thead>
+  <tbody>{% for v in vendors %}<tr data-testid="vendor-row-{{ v.vendor_code }}"><td><a class="text-indigo-700 underline" href="{% url 'console:vendor_detail' v.pk %}">{{ v.vendor_code }}</a></td><td>{{ v.legal_name }}</td><td>{{ v.get_category_display }}</td><td>{% status_badge v.status %}</td><td>{{ v.owner_manager.name }}</td></tr>{% empty %}<tr><td colspan="5" class="muted">No vendors.</td></tr>{% endfor %}</tbody></table>
+</div>
+{% endblock %}

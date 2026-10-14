@@ -1,0 +1,16 @@
+{% extends "base.html" %}{% block title %}Audit log{% endblock %}
+{% block content %}
+<div class="mb-4 flex items-center justify-between"><h1 class="h1">Audit log</h1>{% include "partials/export_buttons.html" %}</div>
+<form class="mb-4 flex flex-wrap gap-2" method="get">
+  <input name="action" value="{{ params.action }}" placeholder="Action" class="input w-48" data-testid="audit-filter-action">
+  <input name="entity" value="{{ params.entity }}" placeholder="Entity" class="input w-36">
+  <input name="entity_id" value="{{ params.entity_id }}" placeholder="Entity id" class="input w-72" data-testid="audit-filter-entity-id">
+  <input name="actor" value="{{ params.actor }}" placeholder="Actor email" class="input w-48" data-testid="audit-filter-actor">
+  <button class="btn">Filter</button>
+</form>
+<div class="card overflow-x-auto p-0">
+<table class="table" data-testid="audit-table"><thead><tr><th>At</th><th>Actor</th><th>Action</th><th>Entity</th><th>Change</th><th>IP</th></tr></thead>
+<tbody>{% for a in page %}<tr data-testid="audit-row" data-action="{{ a.action }}"><td class="whitespace-nowrap">{{ a.at|date:"d M Y H:i:s" }}</td><td data-testid="audit-actor">{{ a.actor.email|default:"system" }}</td><td><code>{{ a.action }}</code></td><td class="text-xs">{{ a.entity }}<br>{{ a.entity_id }}</td><td class="text-xs">{% if a.before_json %}<div class="text-red-700">{{ a.before_json }}</div>{% endif %}{% if a.after_json %}<div class="text-green-700">{{ a.after_json }}</div>{% endif %}</td><td class="text-xs">{{ a.ip|default:"" }}</td></tr>{% empty %}<tr><td colspan="6" class="muted">No entries.</td></tr>{% endfor %}</tbody></table>
+</div>
+<div class="mt-3 flex gap-2">{% if page.has_previous %}<a class="btn btn-sm" href="?{{ params.urlencode }}&page={{ page.previous_page_number }}">Previous</a>{% endif %}{% if page.has_next %}<a class="btn btn-sm" href="?{{ params.urlencode }}&page={{ page.next_page_number }}">Next</a>{% endif %}</div>
+{% endblock %}

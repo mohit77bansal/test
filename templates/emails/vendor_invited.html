@@ -1,0 +1,2 @@
+{% extends "emails/_base.html" %}
+{% block body %}<p>Hello,</p><p>Solfin has invited <strong>{{ vendor_name }}</strong> to register on the Solfin Vendor Portal. Registration is done fully online.</p><p>The link is valid until <strong>{{ expires }}</strong>.</p><p>Please keep these documents ready:</p><ul>{% for d in checklist %}<li>{{ d }}</li>{% endfor %}</ul>{% endblock %}

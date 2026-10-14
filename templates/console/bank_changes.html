@@ -1,0 +1,20 @@
+{% extends "base.html" %}{% block title %}Bank changes{% endblock %}
+{% block content %}
+<h1 class="h1 mb-4">Bank detail changes awaiting verification</h1>
+<div class="space-y-4">
+{% for r in rows %}
+  <div class="card" data-testid="bank-change-{{ r.acct.vendor.vendor_code }}">
+    <div class="mb-2 flex justify-between"><div class="font-medium">{{ r.acct.vendor.vendor_code }} · {{ r.acct.vendor.legal_name }}</div><div class="muted">requested by {{ r.acct.requested_by.name }} on {{ r.acct.created_at|date:"d M Y" }}</div></div>
+    <div class="grid gap-4 text-sm md:grid-cols-2">
+      <div><div class="muted">Current</div>{% if r.current %}{{ r.current.holder_name }} · {{ r.current.bank_name }} · {{ r.current.account_no }} · {{ r.current.ifsc }}{% else %}—{% endif %}</div>
+      <div><div class="muted">New</div><strong>{{ r.acct.holder_name }} · {{ r.acct.bank_name }} · <span data-testid="new-account-no">{{ r.acct.account_no }}</span> · {{ r.acct.ifsc }}</strong></div>
+    </div>
+    <form method="post" action="{% url 'console:bank_decide' r.acct.pk %}" class="mt-3 flex flex-wrap gap-2">{% csrf_token %}
+      <input name="remarks" class="input flex-1" placeholder="Remarks (required to reject)" data-testid="bank-remarks">
+      <button name="decision" value="approve" class="btn btn-primary" data-testid="bank-approve-btn">Approve</button>
+      <button name="decision" value="reject" class="btn btn-danger" data-testid="bank-reject-btn">Reject</button>
+    </form>
+  </div>
+{% empty %}<p class="muted" data-testid="bank-changes-empty">Nothing to verify.</p>{% endfor %}
+</div>
+{% endblock %}

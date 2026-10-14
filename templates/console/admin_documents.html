@@ -1,0 +1,15 @@
+{% extends "base.html" %}{% block title %}Document checklist{% endblock %}
+{% block content %}
+{% include "console/_admin_tabs.html" with tab="documents" %}
+<h1 class="h1 mb-4">KYC document checklist</h1>
+<form method="post" class="card overflow-x-auto p-0">{% csrf_token %}{{ formset.management_form }}
+  <table class="table" data-testid="doctype-table"><thead><tr><th>Code</th><th>Name</th><th>Categories</th><th>Mandatory</th><th>Expiry</th><th>Parser</th><th>Active</th><th>Order</th></tr></thead>
+  <tbody>{% for f in formset %}<tr data-testid="doctype-row-{{ f.code.value|default:'new' }}">{{ f.id }}
+    <td><input name="{{ f.code.html_name }}" value="{{ f.code.value|default:'' }}" class="input w-36"></td>
+    <td><input name="{{ f.name.html_name }}" value="{{ f.name.value|default:'' }}" class="input w-56"></td>
+    <td class="text-xs">{% for cb in f.applies_to %}<label class="mr-2 inline-flex items-center gap-1">{{ cb.tag }} {{ cb.choice_label }}</label>{% endfor %}</td>
+    <td>{{ f.mandatory }}</td><td>{{ f.has_expiry }}</td><td>{{ f.parser_profile }}</td><td>{{ f.is_active }}</td>
+    <td><input type="number" name="{{ f.sort_order.html_name }}" value="{{ f.sort_order.value|default:0 }}" class="input w-16">{% if f.errors %}<div class="errorlist">{{ f.errors }}</div>{% endif %}</td></tr>{% endfor %}</tbody></table>
+  <div class="p-4"><button class="btn btn-primary" data-testid="doctype-save-btn">Save checklist</button></div>
+</form>
+{% endblock %}

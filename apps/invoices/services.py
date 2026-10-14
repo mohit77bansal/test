@@ -14,6 +14,7 @@ from django.utils import timezone
 
 from apps.accounts.models import User
 from apps.audit import services as audit
+from apps.core.context import acting_as
 from apps.core.models import CostCentre, SystemSetting
 from apps.core.permissions import FINANCE, L1, L2, L3, LEVEL_PERMS, has_perm
 from apps.core.sequences import next_value
@@ -52,6 +53,7 @@ def _log(inv, before_status, action, level, by, comment=""):
 
 # --- Upload and submit ------------------------------------------------------------------
 
+@acting_as
 @transaction.atomic
 def create_from_upload(vendor, *, by, uploaded):
     if not has_perm(by, "invoice.upload"):
@@ -112,6 +114,7 @@ def _required_level(inv):
     return matrix.required_level(inv.total)
 
 
+@acting_as
 @transaction.atomic
 def submit(inv, *, by, data, line_items=()):
     if not has_perm(by, "invoice.upload"):
@@ -200,10 +203,11 @@ def _move_to(inv, level, *, by, action_label):
     notify("approval_pending", to=pool, payload=_payload(inv, level_label=LEVEL_LABEL[level]), link=_console_link(inv), in_app=pool)
 
 
+@acting_as
 @transaction.atomic
 def act(inv, *, by, action, comment="", fin_data=None):
     """Approve / reject / query at the invoice's current level."""
-    inv = Invoice.objects.select_for_update().select_related("vendor", "cost_centre").get(pk=inv.pk)
+    inv = Invoice.objects.select_for_update(of=("self",)).select_related("vendor", "cost_centre").get(pk=inv.pk)
     check_can_act(inv, by)
     comment = (comment or "").strip()
     level = inv.current_level
@@ -258,6 +262,7 @@ def _vendor_recipients(inv):
     return out + [u for u in vendor_admins(inv.vendor) if u not in out]
 
 
+@acting_as
 @transaction.atomic
 def vendor_reply(inv, *, by, body, uploaded=None):
     if not has_perm(by, "invoice.reply"):
@@ -280,6 +285,7 @@ def vendor_reply(inv, *, by, body, uploaded=None):
     return inv
 
 
+@acting_as
 def post_internal_message(inv, *, by, body):
     if not (body or "").strip():
         raise ValidationError({"body": "Enter a message."})
@@ -289,11 +295,12 @@ def post_internal_message(inv, *, by, body):
 
 # --- Payments ---------------------------------------------------------------------------
 
+@acting_as
 @transaction.atomic
 def record_payment(inv, *, by, amount, paid_on, utr, tds_deducted=Decimal("0")):
     if not has_perm(by, "payment.record"):
         raise PermissionDenied
-    inv = Invoice.objects.select_for_update().select_related("vendor").get(pk=inv.pk)
+    inv = Invoice.objects.select_for_update(of=("self",)).select_related("vendor").get(pk=inv.pk)
     if inv.status not in (S.APPROVED, S.PARTLY_PAID):
         raise ValidationError("Only approved invoices can be paid.")
     if inv.vendor.has_pending_bank_change:

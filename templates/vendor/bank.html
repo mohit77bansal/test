@@ -1,0 +1,20 @@
+{% extends "base.html" %}{% block title %}Bank details{% endblock %}
+{% block content %}
+<h1 class="h1 mb-4">Bank details</h1>
+{% if pending %}<div class="mb-4 rounded-md bg-amber-50 p-3 text-sm text-amber-900" data-testid="bank-change-pending">A change is awaiting verification by Finance. Payments are on hold until it is approved.</div>{% endif %}
+<div class="grid gap-6 lg:grid-cols-2">
+  <div class="card overflow-x-auto p-0"><table class="table"><thead><tr><th>Version</th><th>Bank</th><th>Account</th><th>IFSC</th><th>Status</th></tr></thead>
+    <tbody>{% for a in history %}<tr data-testid="bank-row"><td>{{ a.version }}</td><td>{{ a.bank_name }}</td><td>{{ a.masked }}</td><td>{{ a.ifsc }}</td><td>{% status_badge a.status %}</td></tr>{% endfor %}</tbody></table></div>
+  {% if is_admin and not pending %}
+  <form method="post" enctype="multipart/form-data" class="card space-y-4" novalidate>{% csrf_token %}
+    <h2 class="h2">Request a change</h2>
+    <p class="muted">Finance will verify the new account. Payments are held until then.</p>
+    {% include "partials/form_errors.html" %}
+    {% include "partials/field.html" with field=form.holder_name %}{% include "partials/field.html" with field=form.account_no %}
+    {% include "partials/field.html" with field=form.ifsc %}{% include "partials/field.html" with field=form.bank_name %}
+    {% include "partials/field.html" with field=form.cheque %}
+    <button class="btn btn-primary" data-testid="bank-change-submit-btn">Submit change</button>
+  </form>
+  {% endif %}
+</div>
+{% endblock %}

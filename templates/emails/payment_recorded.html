@@ -1,0 +1,2 @@
+{% extends "emails/_base.html" %}
+{% block body %}<p>Payment advice for invoice <strong>{{ invoice_no }}</strong> ({{ portal_ref }}):</p><table><tr><td>Amount paid</td><td><strong>{{ amount }}</strong></td></tr><tr><td>UTR</td><td><strong>{{ utr }}</strong></td></tr><tr><td>Date</td><td>{{ paid_on }}</td></tr><tr><td>TDS deducted</td><td>{{ tds }}</td></tr><tr><td>Outstanding</td><td>{{ outstanding }}</td></tr></table>{% endblock %}

@@ -1,0 +1,46 @@
+{% extends "base.html" %}{% block title %}KYC documents{% endblock %}
+{% block content %}
+{% include "vendor/_steps.html" %}
+<div id="doc-table" {% if pending_parse %}hx-get="{% url 'vendor:documents' %}" hx-trigger="every 2s" hx-select="#doc-table" hx-swap="outerHTML"{% endif %}>
+<div class="card overflow-x-auto p-0">
+  <table class="table">
+    <thead><tr><th>Document</th><th>Uploaded</th><th>Reading</th><th>Review</th>{% if can_edit %}<th>Upload</th>{% endif %}</tr></thead>
+    <tbody>
+    {% for r in rows %}
+      <tr data-testid="doc-row-{{ r.type.code }}">
+        <td><div class="font-medium">{{ r.type.name }}</div><div class="text-xs text-slate-500">{% if r.type.mandatory %}Mandatory{% else %}Optional{% endif %}</div></td>
+        <td>{% if r.doc %}<a class="text-indigo-700 underline" href="{% url 'vendor:file' r.doc.file.pk %}">{{ r.doc.file.original_name }}</a>{% else %}<span class="muted">Not uploaded</span>{% endif %}</td>
+        <td data-testid="doc-parse-{{ r.type.code }}">
+          {% if r.doc.parse_job %}
+            {% if r.doc.parse_job.finished %}
+              {% if r.doc.parse_job.status == "DONE" %}<span class="badge badge-green">Read</span>
+                <dl class="mt-1 text-xs text-slate-600">{% for k, v in r.doc.parse_job.extracted_json.items %}{% if v %}<div><span class="text-slate-400">{{ k }}:</span> {{ v }}</div>{% endif %}{% endfor %}</dl>
+              {% else %}<span class="badge badge-red">Could not read — please check the form manually</span>{% endif %}
+            {% else %}<span class="badge badge-blue" data-testid="doc-reading">Reading…</span>{% endif %}
+          {% else %}—{% endif %}
+        </td>
+        <td data-testid="doc-status-{{ r.type.code }}">{% if r.doc %}{% status_badge r.doc.status %}{% if r.doc.remarks %}<div class="mt-1 text-xs text-red-700" data-testid="doc-remarks-{{ r.type.code }}">{{ r.doc.remarks }}</div>{% endif %}{% endif %}</td>
+        {% if can_edit %}
+        <td>
+          <form method="post" enctype="multipart/form-data" action="{% url 'vendor:upload_document' r.type.code %}" class="flex flex-wrap items-center gap-2">{% csrf_token %}
+            <input type="file" name="{{ r.type.code }}-file" accept=".pdf,.jpg,.jpeg,.png" required data-max-bytes="10485760" class="text-xs" data-testid="doc-upload-{{ r.type.code }}">
+            {% if r.type.has_expiry %}<input type="date" name="{{ r.type.code }}-valid_to" class="input w-36 py-1 text-xs" title="Valid until" data-testid="doc-valid-to-{{ r.type.code }}">{% endif %}
+            <button class="btn btn-sm" data-testid="doc-upload-btn-{{ r.type.code }}">{% if r.doc %}Replace{% else %}Upload{% endif %}</button>
+          </form>
+        </td>
+        {% endif %}
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+</div>
+</div>
+{% if can_edit %}
+<div class="mt-6 flex items-center justify-between">
+  <a class="btn" href="{% url 'vendor:onboarding' %}" data-testid="back-to-profile">Back to company & bank details</a>
+  <form method="post" action="{% url 'vendor:submit_registration' %}">{% csrf_token %}
+    <button class="btn btn-primary" data-testid="onboarding-submit-btn">Submit for review</button>
+  </form>
+</div>
+{% endif %}
+{% endblock %}

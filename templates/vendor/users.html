@@ -1,0 +1,19 @@
+{% extends "base.html" %}{% block title %}Users{% endblock %}
+{% block content %}
+<h1 class="h1 mb-4">Users at {{ vendor.legal_name }}</h1>
+<div class="card mb-6 overflow-x-auto p-0">
+  <table class="table"><thead><tr><th>Name</th><th>Email</th><th>Role</th><th></th></tr></thead>
+  <tbody>{% for m in members %}<tr data-testid="vendor-user-row"><td>{{ m.user.name }}</td><td>{{ m.user.email }}</td><td>{% if m.is_admin %}Vendor Admin{% else %}Vendor User{% endif %}</td>
+    <td>{% if is_admin and m.user != user %}<form method="post" action="{% url 'vendor:remove_user' m.pk %}" data-confirm="Remove {{ m.user.email }}?">{% csrf_token %}<button class="btn btn-sm" data-testid="vendor-user-remove-btn">Remove</button></form>{% endif %}</td></tr>{% endfor %}</tbody></table>
+</div>
+{% if is_admin %}
+<form method="post" class="card max-w-xl space-y-4">{% csrf_token %}
+  <h2 class="h2">Add a user</h2>
+  {% include "partials/form_errors.html" %}
+  {% include "partials/field.html" with field=form.name %}
+  {% include "partials/field.html" with field=form.email %}
+  {% include "partials/field.html" with field=form.is_admin %}
+  <button class="btn btn-primary" data-testid="vendor-user-add-btn">Send invitation</button>
+</form>
+{% endif %}
+{% endblock %}

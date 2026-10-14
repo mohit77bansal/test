@@ -1,0 +1,2 @@
+{% extends "emails/_base.html" %}
+{% block body %}<p>Solfin has a question about invoice <strong>{{ invoice_no }}</strong> ({{ portal_ref }}):</p><blockquote style="border-left:3px solid #f59e0b;padding-left:8px">{{ query }}</blockquote><p>Please reply in the portal.</p>{% endblock %}

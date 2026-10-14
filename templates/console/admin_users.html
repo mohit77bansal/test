@@ -1,0 +1,7 @@
+{% extends "base.html" %}{% block title %}Users & roles{% endblock %}
+{% block content %}
+{% include "console/_admin_tabs.html" with tab="users" %}
+<div class="mb-4 flex items-center justify-between"><h1 class="h1">Internal users</h1><a class="btn btn-primary" href="{% url 'console:admin_user_new' %}" data-testid="user-add-btn">Add user</a></div>
+<div class="card overflow-x-auto p-0"><table class="table" data-testid="user-table"><thead><tr><th>Name</th><th>Email</th><th>Roles</th><th>Status</th><th>Last login</th></tr></thead>
+<tbody>{% for u in users %}<tr data-testid="user-row-{{ u.email }}"><td><a class="text-indigo-700 underline" href="{% url 'console:admin_user_edit' u.pk %}">{{ u.name }}</a></td><td>{{ u.email }}</td><td>{% for ur in u.user_roles.all %}<span class="badge badge-blue mr-1">{{ ur.role.code }}{% if ur.cost_centre %} ({{ ur.cost_centre.code }}){% endif %}</span>{% endfor %}</td><td>{% status_badge u.status %}</td><td>{{ u.last_login_at|date:"d M Y H:i"|default:"—" }}</td></tr>{% endfor %}</tbody></table></div>
+{% endblock %}

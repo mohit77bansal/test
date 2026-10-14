@@ -1,0 +1,18 @@
+{% load widget_tweaks %}
+<div class="{{ wrapper_class|default:'' }}">
+  {% if field.field.widget.input_type == "checkbox" %}
+    <label class="flex items-start gap-2 text-sm text-slate-700">{% render_field field class="mt-1" data-testid=field.name %} <span>{{ field.label }}</span></label>
+  {% else %}
+    <label class="label" for="{{ field.id_for_label }}">{{ field.label }}{% if field.field.required %} <span class="text-red-500">*</span>{% endif %}
+      {% if low and field.name in low %}<span class="ml-1 badge badge-amber" data-testid="low-confidence-{{ field.name }}">check this</span>{% endif %}
+      {% if prefilled and field.name in prefilled %}<span class="ml-1 badge badge-blue" data-testid="prefilled-{{ field.name }}">from document</span>{% endif %}
+    </label>
+    {% if low and field.name in low %}
+      {% render_field field class="input low-confidence" data-testid=field.name data-low-confidence="true" %}
+    {% else %}
+      {% render_field field class="input" data-testid=field.name %}
+    {% endif %}
+  {% endif %}
+  {% if field.help_text %}<p class="mt-1 text-xs text-slate-500">{{ field.help_text }}</p>{% endif %}
+  {% if field.errors %}<ul class="errorlist" data-testid="error-{{ field.name }}">{% for e in field.errors %}<li>{{ e }}</li>{% endfor %}</ul>{% endif %}
+</div>

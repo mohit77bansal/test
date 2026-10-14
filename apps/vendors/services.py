@@ -9,9 +9,10 @@ from django.utils import timezone
 
 from apps.accounts.models import Role, User, UserRole
 from apps.audit import services as audit
+from apps.core.context import acting_as
 from apps.core.models import SystemSetting
 from apps.core.permissions import FINANCE, VENDOR_ADMIN, VENDOR_MANAGER, VENDOR_USER, has_perm
-from apps.core.sequences import next_value
+from apps.core.sequences import next_code
 from apps.notify.services import notify
 from apps.parsing.services import start_parse, store_upload
 from apps.parsing.validators import pan_from_gstin, valid_gstin, valid_ifsc, valid_pan
@@ -61,6 +62,7 @@ def _create_invite(vendor, email, *, name="", is_admin=True, user=None):
     return invite, token
 
 
+@acting_as
 @transaction.atomic
 def invite_vendor(*, by, legal_name, email, category):
     _require(by, "vendor.invite")
@@ -68,7 +70,7 @@ def invite_vendor(*, by, legal_name, email, category):
     if User.objects.filter(email__iexact=email).exists():
         raise ValidationError({"email": "A user with this email already exists."})
     vendor = Vendor.objects.create(
-        vendor_code=f"V{next_value('vendor_code'):05d}", legal_name=legal_name, category=category,
+        vendor_code=next_code("vendor_code", Vendor, "vendor_code", "V{:05d}"), legal_name=legal_name, category=category,
         contact_email=email, status=Vendor.INVITED, owner_manager=by, invited_by=by,
     )
     invite, token = _create_invite(vendor, email)
@@ -117,6 +119,7 @@ REGISTRATION_FIELDS = [
 ]
 
 
+@acting_as
 @transaction.atomic
 def save_registration(vendor, *, by, data):
     _require(by, "vendor.edit_profile")
@@ -154,6 +157,7 @@ def save_registration(vendor, *, by, data):
     return vendor
 
 
+@acting_as
 @transaction.atomic
 def upload_document(vendor, *, by, document_type, uploaded, valid_from=None, valid_to=None):
     _require(by, "vendor.edit_profile")
@@ -207,6 +211,7 @@ def mismatches(vendor):
     return out
 
 
+@acting_as
 @transaction.atomic
 def submit_registration(vendor, *, by):
     _require(by, "vendor.edit_profile")
@@ -241,6 +246,7 @@ def _start_review(vendor):
         _set_status(vendor, Vendor.UNDER_REVIEW, "vendor.status")
 
 
+@acting_as
 @transaction.atomic
 def review_document(doc, *, by, approve, remarks=""):
     _require(by, "vendor.review_kyc")
@@ -259,6 +265,7 @@ def review_document(doc, *, by, approve, remarks=""):
     return doc
 
 
+@acting_as
 @transaction.atomic
 def send_back(vendor, *, by, remarks):
     _require(by, "vendor.review_kyc")
@@ -273,6 +280,7 @@ def send_back(vendor, *, by, remarks):
     notify("kyc_sent_back", to=admins, payload=_payload(vendor, remarks=remarks, documents=doc_remarks), link=reverse("vendor:onboarding"), in_app=admins)
 
 
+@acting_as
 @transaction.atomic
 def activate(vendor, *, by):
     _require(by, "vendor.activate")
@@ -294,6 +302,7 @@ def activate(vendor, *, by):
     notify("vendor_activated", to=users, cc=[vendor.owner_manager] if vendor.owner_manager else [], payload=_payload(vendor), link=reverse("vendor:invoice_upload"), in_app=users)
 
 
+@acting_as
 @transaction.atomic
 def reject_vendor(vendor, *, by, remarks):
     _require(by, "vendor.activate")
@@ -306,6 +315,7 @@ def reject_vendor(vendor, *, by, remarks):
     notify("vendor_rejected", to=vendor_admins(vendor), payload=_payload(vendor, remarks=remarks))
 
 
+@acting_as
 @transaction.atomic
 def block(vendor, *, by, reason):
     _require(by, "vendor.block")
@@ -317,6 +327,7 @@ def block(vendor, *, by, reason):
     notify("vendor_blocked", to=vendor_admins(vendor), cc=[vendor.owner_manager] if vendor.owner_manager else [], payload=_payload(vendor, reason=reason, contact=by.email))
 
 
+@acting_as
 @transaction.atomic
 def unblock(vendor, *, by):
     _require(by, "vendor.block")
@@ -327,6 +338,7 @@ def unblock(vendor, *, by):
 
 # --- Changes after activation -----------------------------------------------------------
 
+@acting_as
 @transaction.atomic
 def request_bank_change(vendor, *, by, holder_name, account_no, ifsc, bank_name, uploaded=None):
     _require(by, "vendor.edit_bank")
@@ -351,6 +363,7 @@ def request_bank_change(vendor, *, by, holder_name, account_no, ifsc, bank_name,
     return acct
 
 
+@acting_as
 @transaction.atomic
 def decide_bank_change(acct, *, by, approve, remarks=""):
     _require(by, "bank.approve")
@@ -372,6 +385,7 @@ def decide_bank_change(acct, *, by, approve, remarks=""):
     notify("bank_change_decided", to=vendor_admins(vendor), payload=_payload(vendor, decision="approved" if approve else "rejected", remarks=remarks, last4=acct.account_last4), link=reverse("vendor:bank"))
 
 
+@acting_as
 @transaction.atomic
 def add_gstin(vendor, *, by, gstin, address=""):
     _require(by, "vendor.edit_profile")
@@ -385,6 +399,7 @@ def add_gstin(vendor, *, by, gstin, address=""):
     return g
 
 
+@acting_as
 @transaction.atomic
 def verify_gstin(g, *, by):
     _require(by, "vendor.verify_gstin")
@@ -395,6 +410,7 @@ def verify_gstin(g, *, by):
 
 # --- Vendor users -----------------------------------------------------------------------
 
+@acting_as
 @transaction.atomic
 def add_vendor_user(vendor, *, by, email, name, is_admin=False):
     _require(by, "vendor.manage_users")
@@ -407,6 +423,7 @@ def add_vendor_user(vendor, *, by, email, name, is_admin=False):
     return invite, token
 
 
+@acting_as
 @transaction.atomic
 def remove_vendor_user(vu, *, by):
     _require(by, "vendor.manage_users")

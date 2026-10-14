@@ -1,0 +1,9 @@
+{% extends "base.html" %}{% block title %}Email templates{% endblock %}
+{% block content %}
+{% include "console/_admin_tabs.html" with tab="templates" %}
+<h1 class="h1 mb-4">Email templates</h1>
+<div class="card overflow-x-auto p-0"><table class="table"><thead><tr><th>Code</th><th>Name</th><th>Subject</th><th>Status</th><th></th></tr></thead>
+<tbody>{% for t in templates %}<tr data-testid="template-row-{{ t.code }}"><td><code>{{ t.code }}</code></td><td>{{ t.name }}</td><td class="text-xs">{{ t.subject }}</td>
+<td data-testid="template-status-{{ t.code }}">{% if t.enabled %}<span class="badge badge-green">On</span>{% else %}<span class="badge badge-red">Off</span>{% endif %}</td>
+<td>{% if not t.system %}<form method="post" action="{% url 'console:admin_template_toggle' t.code %}">{% csrf_token %}<button class="btn btn-sm" data-testid="template-toggle-{{ t.code }}">Switch {% if t.enabled %}off{% else %}on{% endif %}</button></form>{% else %}<span class="muted text-xs">Always on</span>{% endif %}</td></tr>{% endfor %}</tbody></table></div>
+{% endblock %}

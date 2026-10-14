@@ -1,0 +1,2 @@
+{% extends "emails/_base.html" %}
+{% block body %}<p>Invoice <strong>{{ invoice_no }}</strong> ({{ portal_ref }}) has been rejected.</p><p>Reason: {{ reason }}</p><p>Please upload a corrected invoice.</p>{% endblock %}
