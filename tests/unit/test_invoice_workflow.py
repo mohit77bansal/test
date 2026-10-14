@@ -118,6 +118,7 @@ def test_query_returns_to_same_level(make_invoice, users):
     services.vendor_reply(inv, by=users["vendora"], body="Attached", uploaded=fake_pdf("timesheet.pdf"))
     inv.refresh_from_db()
     assert inv.status == S.PENDING_L2 and inv.current_level == "L2"
+    assert inv in services.queue_for(users["l2"])  # the query-raiser gets it back in their queue
     assert any("replied" in m.subject and m.to == ["l2@test.local"] for m in mail.outbox)
 
 

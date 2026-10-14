@@ -334,7 +334,7 @@ def record_payment(inv, *, by, amount, paid_on, utr, tds_deducted=Decimal("0")):
 def queue_for(user):
     """Invoices `user` can act on now."""
     qs = Invoice.objects.select_related("vendor", "cost_centre").exclude(submitted_by=user)
-    qs = qs.exclude(actions__actor=user, actions__action=ApprovalAction.Action.APPROVE)
+    qs = qs.exclude(pk__in=ApprovalAction.objects.filter(actor=user, action=ApprovalAction.Action.APPROVE).values("invoice_id"))
     q = Q(pk__in=[])
     if user.has_role(FINANCE):
         q |= Q(status=S.FIN_PRECHECK)

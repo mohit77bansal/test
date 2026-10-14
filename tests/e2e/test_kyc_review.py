@@ -26,6 +26,7 @@ def submitted_vendor(seed, inviter="vm"):
     gstin = make_gstin("27", PAN)
     vendor, token = services.invite_vendor(by=seed[inviter], legal_name="Kay Goods Private Limited", email=EMAIL, category="GOODS")
     user = services.accept_invite(services.find_invite(token), password="Vend0r-Passw0rd!")
+    vendor.refresh_from_db()
     services.save_registration(vendor, by=user, data={
         "legal_name": "Kay Goods Private Limited", "trade_name": "Kay Goods", "constitution": "PRIVATE_LTD", "pan": PAN, "gstin": gstin,
         "address": "4 Ring Road, Mumbai", "contact_name": "Kiran Kay", "contact_phone": "9800011122", "msme_status": "NOT_MSME",
@@ -56,7 +57,7 @@ def _vendor_status(page):
 def _post(page, path, data=None):
     """Direct form POST with the browser's session + CSRF cookie (bypasses the hidden UI)."""
     token = next(c["value"] for c in page.context.cookies() if c["name"] == "csrftoken")
-    return page.request.post(path, form=data or {}, headers={"X-CSRFToken": token, "Referer": page.url})
+    return page.request.post(path, form=data or {}, headers={"X-CSRFToken": token, "Referer": page.url}, max_redirects=0)
 
 
 def test_per_document_approve_and_reject_with_remarks(page, seed):
@@ -169,9 +170,10 @@ def test_inviter_cannot_review_or_activate(page, seed):
     for d in VendorDocument.objects.filter(vendor=vendor, is_current=True):
         services.review_document(d, by=seed["vm2"], approve=True)
     resp = _post(page, f"/console/vendors/{vendor.pk}/activate/")
-    assert resp.status < 500
+    assert resp.status == 302
     page.goto(f"/console/vendors/{vendor.pk}/")
-    expect(page.get_by_test_id("flash-error")).to_be_visible()
+    # Both refusals (review + activate) are flashed.
+    expect(page.get_by_test_id("flash-error")).to_have_count(2)
     expect(_vendor_status(page)).to_have_attribute("data-status", "UNDER_REVIEW")
     assert Vendor.objects.get(pk=vendor.pk).status == "UNDER_REVIEW"
     assert emails_to(EMAIL, "Welcome") == []

@@ -112,7 +112,7 @@ def _vendor(code, legal_name, email, state, pan, admin_name):
 
 
 def seed_demo():
-    """Fixed users per role, vendors A and B (active), sample invoices at ₹50,000 and ₹15,00,000."""
+    """Fixed users per role and active vendors A and B. Sample invoices: see `sample_invoice()`."""
     from apps.core.models import CostCentre
 
     cc = seed_reference()

@@ -4,7 +4,7 @@
   <div><h1 class="h1">{{ vendor.legal_name }}</h1><p class="muted">{{ vendor.vendor_code }} · {{ vendor.get_category_display }} · invited by {{ vendor.invited_by.name }}</p></div>
   <span data-testid="vendor-status">{% status_badge vendor.status %}</span>
 </div>
-{% if is_inviter and vendor.status in "SUBMITTED UNDER_REVIEW" %}<div class="mb-4 rounded-md bg-blue-50 p-3 text-sm text-blue-900" data-testid="inviter-notice">You invited this vendor, so another Vendor Manager must review its KYC and activate it.</div>{% endif %}
+{% if is_inviter and vendor.status == "SUBMITTED" or is_inviter and vendor.status == "UNDER_REVIEW" %}<div class="mb-4 rounded-md bg-blue-50 p-3 text-sm text-blue-900" data-testid="inviter-notice">You invited this vendor, so another Vendor Manager must review its KYC and activate it.</div>{% endif %}
 {% if mismatches %}<div class="mb-4 rounded-md border border-amber-300 bg-amber-50 p-3 text-sm text-amber-900" data-testid="parse-mismatch"><strong>Parsed documents differ from the form:</strong><ul class="ml-5 list-disc">{% for m in mismatches %}<li>{{ m.field }}: typed <code>{{ m.typed }}</code>, document <code>{{ m.parsed }}</code></li>{% endfor %}</ul></div>{% endif %}
 <div class="grid gap-6 lg:grid-cols-3">
   <div class="space-y-6 lg:col-span-2">

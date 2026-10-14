@@ -47,8 +47,12 @@ def store_upload(uploaded, *, vendor, user) -> File:
     sha = hashlib.sha256(content).hexdigest()
     ext = settings.ALLOWED_UPLOAD_TYPES[mime]
     key = f"vendors/{vendor.pk if vendor else 'internal'}/{uuid.uuid4().hex}{ext}"
+    scan_status = scan_bytes(content)  # ClamAV before anything is parsed or displayed
+    if scan_status == File.INFECTED:
+        raise ValidationError("The file failed the virus scan and was not accepted.")
     key = default_storage.save(key, ContentFile(content))
     return File.objects.create(
+        scan_status=scan_status,
         vendor=vendor,
         s3_key=key,
         bucket=settings.AWS_STORAGE_BUCKET_NAME if settings.STORAGE_BACKEND == "s3" else "local",

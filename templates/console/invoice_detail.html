@@ -2,7 +2,7 @@
 {% block content %}
 <div class="mb-4 flex flex-wrap items-center justify-between gap-2">
   <div><h1 class="h1" data-testid="invoice-ref">{{ invoice.portal_ref }}</h1><p class="muted"><a class="underline" href="{% url 'console:vendor_detail' invoice.vendor.pk %}">{{ invoice.vendor.vendor_code }} · {{ invoice.vendor.legal_name }}</a> · invoice {{ invoice.invoice_no }} · {{ invoice.invoice_date|date:"d M Y" }}</p></div>
-  <div class="flex items-center gap-2"><span class="muted text-xs">Needs up to {{ invoice.required_level }}</span>{% status_badge invoice.status invoice.get_status_display %}</div>
+  <div class="flex items-center gap-2"><span class="muted text-xs" data-testid="required-level" data-level="{{ invoice.required_level }}">Needs up to {{ invoice.required_level }}</span>{% status_badge invoice.status invoice.get_status_display %}</div>
 </div>
 {% if invoice.vendor.has_pending_bank_change %}<div class="mb-4 rounded-md bg-amber-50 p-3 text-sm text-amber-900" data-testid="payment-hold">Payments to this vendor are on hold: a bank-detail change awaits Finance approval.</div>{% endif %}
 <div class="grid gap-6 lg:grid-cols-3">
@@ -15,7 +15,7 @@
         <div><dt class="muted">CGST / SGST / IGST</dt><dd>{{ invoice.cgst|inr }} / {{ invoice.sgst|inr }} / {{ invoice.igst|inr }}</dd></div>
         <div><dt class="muted">Total</dt><dd class="font-semibold" data-testid="invoice-total">{{ invoice.total|inr }}</dd></div>
         <div><dt class="muted">TDS</dt><dd>{{ invoice.tds_section|default:"—" }} {{ invoice.tds_amount|inr }}</dd></div>
-        <div><dt class="muted">Due</dt><dd>{{ invoice.due_date|date:"d M Y"|default:"—" }}</dd></div>
+        <div><dt class="muted">Due</dt><dd data-testid="invoice-due-date">{{ invoice.due_date|date:"d M Y"|default:"—" }}</dd></div>
         <div><dt class="muted">Outstanding</dt><dd>{{ invoice.outstanding|inr }}</dd></div>
       </dl>
       {% if low %}<p class="mt-3 text-xs text-amber-700">Parser had low confidence on: {{ low|join:", " }} (vendor confirmed the values).</p>{% endif %}
@@ -49,7 +49,7 @@
     <div class="card overflow-x-auto"><h2 class="h2 mb-2">Payments</h2>
       <table class="table"><thead><tr><th>Date</th><th class="text-right">Amount</th><th class="text-right">TDS</th><th>UTR</th><th>By</th></tr></thead>
       <tbody>{% for p in payments %}<tr data-testid="payment-row"><td>{{ p.paid_on|date:"d M Y" }}</td><td class="text-right">{{ p.amount|inr }}</td><td class="text-right">{{ p.tds_deducted|inr }}</td><td>{{ p.utr }}</td><td>{{ p.recorded_by.name }}</td></tr>{% empty %}<tr><td colspan="5" class="muted">No payments.</td></tr>{% endfor %}</tbody></table>
-      {% if user|can:"payment.record" and invoice.status in "APPROVED PARTLY_PAID" %}<a class="btn btn-primary mt-3" href="{% url 'console:record_payment' invoice.pk %}" data-testid="payment-record-link">Record payment</a>{% endif %}
+      {% if user|can:"payment.record" and invoice.status == "APPROVED" or user|can:"payment.record" and invoice.status == "PARTLY_PAID" %}<a class="btn btn-primary mt-3" href="{% url 'console:record_payment' invoice.pk %}" data-testid="payment-record-link">Record payment</a>{% endif %}
     </div>
   </div>
   <div class="card"><h2 class="h2 mb-3">Approval history</h2>{% include "partials/approval_history.html" %}</div>

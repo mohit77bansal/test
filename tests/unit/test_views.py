@@ -68,7 +68,9 @@ def test_idle_timeout_setting(settings):
 def test_console_pages_render(as_user, name, make_invoice):
     make_invoice(total=50000)
     c = as_user(name)
-    for url in ["/console/", "/console/vendors/", "/console/invoices/", "/console/reports/ageing/", "/notifications/"]:
+    from apps.vendors.models import Vendor
+
+    for url in ["/console/", "/console/vendors/", "/console/invoices/", "/console/reports/ageing/", "/notifications/"] + [f"/console/vendors/{v.pk}/" for v in Vendor.objects.all()]:
         resp = c.get(url)
         assert resp.status_code in (200, 403), (url, resp.status_code)
     assert c.get("/console/").status_code == 200
