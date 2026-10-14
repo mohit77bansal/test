@@ -17,3 +17,8 @@ PASSWORD_HASHERS = ["django.contrib.auth.hashers.MD5PasswordHasher"]
 FIELD_ENCRYPTION_KEY = "xgimPcMr-DNulTr8SxgUbCxGWZp0pamcJlQ92WX10Vs="
 DATABASES["default"]["CONN_MAX_AGE"] = 0  # noqa: F405
 LOGGING = {"version": 1, "disable_existing_loggers": False}
+
+# Separate test DB per concurrent run (xdist adds its own _gwN suffix).
+import os  # noqa: E402
+
+DATABASES["default"]["TEST"] = {"NAME": os.environ.get("TEST_DB_NAME", "test_vendor_portal")}  # noqa: F405
